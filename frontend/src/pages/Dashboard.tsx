@@ -75,7 +75,7 @@ export default function Dashboard() {
       return { points: [], maxVal: 1 };
     }
 
-    const groupMap = new Map<string, { label: string; success: number; failed: number; sortKey: string }>();
+    const groupMap = new Map<string, { label: string; success: number; failed: number; executing: number; sortKey: string }>();
 
     filteredDeliveries.forEach((d) => {
       const dt = new Date(d.created_at);
@@ -109,11 +109,13 @@ export default function Dashboard() {
       if (existing) {
         if (d.status === "delivered") existing.success += 1;
         else if (d.status === "failed") existing.failed += 1;
+        else existing.executing += 1;
       } else {
         groupMap.set(key, {
           label,
           success: d.status === "delivered" ? 1 : 0,
           failed: d.status === "failed" ? 1 : 0,
+          executing: (d.status !== "delivered" && d.status !== "failed") ? 1 : 0,
           sortKey: key,
         });
       }
@@ -121,7 +123,7 @@ export default function Dashboard() {
 
     // Sort chronologically
     const sortedEntries = Array.from(groupMap.values()).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
-    const maxVal = Math.max(1, ...sortedEntries.map((e) => e.success + e.failed));
+    const maxVal = Math.max(1, ...sortedEntries.map((e) => e.success + e.failed + e.executing));
 
     return { points: sortedEntries, maxVal };
   }, [filteredDeliveries, granularity]);
@@ -171,10 +173,10 @@ export default function Dashboard() {
     const h = svgDimensions.height - padding.top - padding.bottom;
 
     const coords = points.map((p, idx) => {
-      const totalVal = p.success + p.failed;
+      const totalVal = p.success + p.failed + p.executing;
       const x = padding.left + (idx / (points.length - 1)) * w;
       const y = svgDimensions.height - padding.bottom - (totalVal / maxVal) * h;
-      return { x, y, label: p.label, total: totalVal, success: p.success, failed: p.failed };
+      return { x, y, label: p.label, total: totalVal, success: p.success, failed: p.failed, executing: p.executing };
     });
 
     // Generate Path string
@@ -365,18 +367,21 @@ export default function Dashboard() {
                       <g className="opacity-0 group-hover/pt:opacity-100 transition-opacity duration-150 pointer-events-none">
                         <rect
                           x={c.x - 50}
-                          y={c.y - 45}
+                          y={c.y - 58}
                           width="100"
-                          height="35"
+                          height="48"
                           rx="4"
                           fill="#1e293b"
                           className="shadow-premium"
                         />
-                        <text x={c.x} y={c.y - 32} textAnchor="middle" className="text-[9px] fill-emerald-400 font-bold font-sans">
+                        <text x={c.x} y={c.y - 45} textAnchor="middle" className="text-[9px] fill-emerald-400 font-bold font-sans">
                           Delivered: {c.success}
                         </text>
-                        <text x={c.x} y={c.y - 20} textAnchor="middle" className="text-[9px] fill-rose-400 font-bold font-sans">
+                        <text x={c.x} y={c.y - 33} textAnchor="middle" className="text-[9px] fill-rose-400 font-bold font-sans">
                           Failed: {c.failed}
+                        </text>
+                        <text x={c.x} y={c.y - 21} textAnchor="middle" className="text-[9px] fill-amber-400 font-bold font-sans">
+                          Executing: {c.executing}
                         </text>
                       </g>
 
