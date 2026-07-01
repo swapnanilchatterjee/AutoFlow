@@ -23,6 +23,7 @@ and you have the whole stack on your machine.
 - **[docs/SETUP.md](docs/SETUP.md)** — running it (Docker or local) + troubleshooting.
 - **[docs/PRODUCTION_SETUP.md](docs/PRODUCTION_SETUP.md)** — production-grade deployment layout, HA cloud setup, and security checklist.
 - **[docs/PERFORMANCE_REPORT.md](docs/PERFORMANCE_REPORT.md)** — performance benchmarks, resource footprints, and database optimization analysis.
+- **[RESUME.md](RESUME.md)** — resume bullet points, technology stack list, and interview talking points.
 
 ---
 
