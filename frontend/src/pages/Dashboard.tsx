@@ -24,6 +24,7 @@ export default function Dashboard() {
 
   // Granularity selector for the line graph
   const [granularity, setGranularity] = useState<Granularity>("day");
+  const [chartView, setChartView] = useState<"all" | "success" | "failed" | "executing">("all");
 
   // Date range state (default to past 7 days)
   const [startDateStr, setStartDateStr] = useState(() => {
@@ -123,6 +124,16 @@ export default function Dashboard() {
 
     // Sort chronologically
     const sortedEntries = Array.from(groupMap.values()).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+    if (sortedEntries.length === 1) {
+      // Add a 0-value prefix point so we have 2 points for the line graph to render
+      sortedEntries.unshift({
+        label: "Start",
+        success: 0,
+        failed: 0,
+        executing: 0,
+        sortKey: "0_start"
+      });
+    }
     const maxVal = Math.max(1, ...sortedEntries.map((e) => e.success + e.failed + e.executing));
 
     return { points: sortedEntries, maxVal };
@@ -313,22 +324,37 @@ export default function Dashboard() {
               </span>
             </div>
             
-            {/* Granularity Selector Toggles */}
-            <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-0.5 border border-slate-200/20">
-              {(["sec", "min", "hour", "day", "month"] as const).map((g) => (
-                <button
-                  key={g}
-                  onClick={() => setGranularity(g)}
-                  className={cn(
-                    "rounded px-2 py-0.5 text-[10px] font-bold capitalize transition-all select-none",
-                    granularity === g
-                      ? "bg-white text-slate-800 shadow-sm"
-                      : "text-slate-500 hover:text-slate-700",
-                  )}
-                >
-                  {g}
-                </button>
-              ))}
+            {/* Controls: view selector & granularity */}
+            <div className="flex items-center gap-3">
+              {/* Dropdown for Status Filter */}
+              <select
+                value={chartView}
+                onChange={(e) => setChartView(e.target.value as any)}
+                className="h-7 rounded border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-bold text-slate-700 outline-none hover:border-slate-300 transition-colors"
+              >
+                <option value="all">Show All Lines</option>
+                <option value="success">Delivered Only</option>
+                <option value="failed">Failed Only</option>
+                <option value="executing">Executing Only</option>
+              </select>
+
+              {/* Granularity Selector Toggles */}
+              <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-0.5 border border-slate-200/20">
+                {(["sec", "min", "hour", "day", "month"] as const).map((g) => (
+                  <button
+                    key={g}
+                    onClick={() => setGranularity(g)}
+                    className={cn(
+                      "rounded px-2 py-0.5 text-[10px] font-bold capitalize transition-all select-none",
+                      granularity === g
+                        ? "bg-white text-slate-800 shadow-sm"
+                        : "text-slate-500 hover:text-slate-700",
+                    )}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -380,7 +406,7 @@ export default function Dashboard() {
                   })}
 
                   {/* Line strokes for each status */}
-                  {svgPaths.successPath && (
+                  {svgPaths.successPath && (chartView === "all" || chartView === "success") && (
                     <path
                       d={svgPaths.successPath}
                       fill="none"
@@ -390,7 +416,7 @@ export default function Dashboard() {
                       strokeLinejoin="round"
                     />
                   )}
-                  {svgPaths.executingPath && (
+                  {svgPaths.executingPath && (chartView === "all" || chartView === "executing") && (
                     <path
                       d={svgPaths.executingPath}
                       fill="none"
@@ -401,7 +427,7 @@ export default function Dashboard() {
                       strokeDasharray="4 3"
                     />
                   )}
-                  {svgPaths.failedPath && (
+                  {svgPaths.failedPath && (chartView === "all" || chartView === "failed") && (
                     <path
                       d={svgPaths.failedPath}
                       fill="none"
