@@ -48,8 +48,9 @@ All core API groups have been fully tested and validated using a sandboxed verif
 *   **Execution Logs (`GET /workspaces/{id}/workflows/{wfid}/runs/{runid}`)**: Polled run logs after 3 seconds. Verified step outputs (`RUNNING` / `SUCCESS` state) are correctly tracked.
 
 ### 📊 [Logs & Dashboard Stats]
-*   **Dashboard Stats (`GET /api/v1/dashboard/stats`)**: Successfully fetched data.
-*   **Delivery logs (`GET /api/v1/deliveries`)**: Logs verified.
+*   **Dashboard Stats (`GET /api/v1/dashboard/stats`)**: Successfully fetched aggregate workspace counts and stats.
+*   **Interactive Line Graph**: Verified the rendering of 3 distinct timeline trend paths (Delivered, Failed, Executing) with options to toggle granularities (Seconds, Minutes, Hours, Days, Months).
+*   **Delivery Logs (`GET /api/v1/deliveries`)**: Logs verified, supporting real-time text search, date filtering, and CSV export.
 
 ---
 

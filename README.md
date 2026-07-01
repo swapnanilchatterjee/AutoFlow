@@ -55,10 +55,9 @@ run history and live-streamed per-step logs.
   each running a shell command, with `continue_on_error` and per-step `env`.
 - **Scheduler** — cron-scheduled workflows fire automatically (evaluated every minute).
 - **Webhooks** — webhook-triggered workflows expose an unguessable public URL.
-- **Runs & logs** — full run history; each step records status, exit code, timing, and
-  combined stdout/stderr, streamed live to the UI while running.
-- **Notifications** — in-app notifications on run completion.
-- **Dashboard** — workspace/workflow/run counts, success rate, recent runs.
+- **Logs** — detailed execution and delivery history; tracks status, exit codes, recipient details, and message outputs. Fully searchable, filterable by date range, and exportable to CSV.
+- **Notifications & Alerts** — in-app alerts on run completion, plus immediate admin email alerts on workflow failure.
+- **Dashboard** — workspace summary statistics and an interactive timeline line graph displaying 3 distinct paths (Delivered, Executing, Failed) with scale granularities from seconds up to months.
 
 ---
 
