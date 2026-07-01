@@ -1,29 +1,35 @@
-"""Workflow definition parser & validator (Phase 7).
+"""Workflow definition parser & validator (Phases 7 + integrations).
 
-Workflow definitions are YAML, modelled loosely on GitHub Actions:
+Workflow definitions are YAML, modelled loosely on GitHub Actions. A step is
+either a shell step (``run:``) or an action step (``uses:``) that delivers a
+message through a configured channel:
 
-    name: Build and Test          # optional (defaults to the workflow name)
-    env:                          # optional workflow-level environment
-      GREETING: hello
+    name: Nightly report
+    env:
+      REPORT: reports/daily.pdf
     steps:
-      - name: Greet
-        run: echo "$GREETING"
-      - name: Build
-        run: |
-          make build
-          make test
-        env:                      # optional, overrides workflow env
-          MODE: release
-        continue_on_error: false  # optional (default false)
+      - name: Build report
+        run: ./make_report.sh
 
-The parser returns a structured, validated object; on any structural problem
-it raises :class:`WorkflowParseError` with a human-readable message.
+      - name: Email it
+        uses: gmail                 # gmail | telegram | whatsapp
+        with:
+          to: [alice@x.com, bob@x.com]
+          subject: Daily report
+          body: "Attached is today's report."
+          format: text              # text | html | markdown
+          attachments: [reports/daily.pdf]
+
+Each step must have exactly one of ``run`` or ``uses``. On any structural
+problem the parser raises :class:`WorkflowParseError`.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 
 import yaml
+
+from app.integrations.registry import channel_types
 
 
 class WorkflowParseError(ValueError):
@@ -33,9 +39,24 @@ class WorkflowParseError(ValueError):
 @dataclass
 class ParsedStep:
     name: str
-    run: str
+    run: str | None = None
+    uses: str | None = None
+    with_: dict = field(default_factory=dict)
     env: dict[str, str] = field(default_factory=dict)
     continue_on_error: bool = False
+
+    @property
+    def is_action(self) -> bool:
+        return self.uses is not None
+
+    @property
+    def command_display(self) -> str:
+        """A short string stored on the StepRun row for display."""
+        if self.uses:
+            to = self.with_.get("to")
+            target = ", ".join(to) if isinstance(to, list) else (to or "")
+            return f"uses: {self.uses}" + (f" → {target}" if target else "")
+        return self.run or ""
 
 
 @dataclass
@@ -51,6 +72,42 @@ def _as_env(value: object, where: str) -> dict[str, str]:
     if not isinstance(value, dict):
         raise WorkflowParseError(f"'{where}' must be a mapping of KEY: value")
     return {str(k): "" if v is None else str(v) for k, v in value.items()}
+
+
+def _parse_step(raw: dict, i: int) -> ParsedStep:
+    run = raw.get("run")
+    uses = raw.get("uses")
+
+    has_run = isinstance(run, str) and run.strip()
+    has_uses = isinstance(uses, str) and uses.strip()
+
+    if has_run and has_uses:
+        raise WorkflowParseError(f"Step {i} cannot have both 'run' and 'uses'")
+    if not has_run and not has_uses:
+        raise WorkflowParseError(f"Step {i} must have a 'run' command or a 'uses' action")
+
+    name = str(raw.get("name") or f"Step {i}")
+    common = {
+        "name": name,
+        "env": _as_env(raw.get("env"), f"steps[{i}].env"),
+        "continue_on_error": bool(raw.get("continue_on_error", False)),
+    }
+
+    if has_uses:
+        channel = uses.strip()
+        if channel not in channel_types():
+            allowed = ", ".join(channel_types())
+            raise WorkflowParseError(
+                f"Step {i} uses unknown action '{channel}' (available: {allowed})"
+            )
+        with_ = raw.get("with") or {}
+        if not isinstance(with_, dict):
+            raise WorkflowParseError(f"Step {i} 'with' must be a mapping")
+        if not with_.get("to"):
+            raise WorkflowParseError(f"Step {i} ('{channel}') needs a 'to' recipient")
+        return ParsedStep(uses=channel, with_=with_, **common)
+
+    return ParsedStep(run=run, **common)
 
 
 def parse_workflow(definition: str, *, default_name: str = "workflow") -> ParsedWorkflow:
@@ -73,18 +130,7 @@ def parse_workflow(definition: str, *, default_name: str = "workflow") -> Parsed
     for i, raw in enumerate(raw_steps, start=1):
         if not isinstance(raw, dict):
             raise WorkflowParseError(f"Step {i} must be a mapping")
-        run = raw.get("run")
-        if not isinstance(run, str) or not run.strip():
-            raise WorkflowParseError(f"Step {i} must have a non-empty 'run' command")
-        name = str(raw.get("name") or f"Step {i}")
-        steps.append(
-            ParsedStep(
-                name=name,
-                run=run,
-                env=_as_env(raw.get("env"), f"steps[{i}].env"),
-                continue_on_error=bool(raw.get("continue_on_error", False)),
-            )
-        )
+        steps.append(_parse_step(raw, i))
 
     return ParsedWorkflow(
         name=str(data.get("name") or default_name),

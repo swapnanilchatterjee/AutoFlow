@@ -7,12 +7,17 @@ SQL jobs, reports, notifications) instead of hosting code repositories.
 Everything runs on open-source software. No SaaS, no cloud lock-in. `docker compose up`
 and you have the whole stack on your machine.
 
-> **Status:** all 13 phases complete. The backend exposes 45 REST endpoints, a YAML
+> **Status:** all phases complete, plus messaging integrations and a light-theme UI.
+> The backend exposes 51 REST endpoints, a YAML
 > workflow engine, a cron scheduler, webhook triggers, encrypted secrets, an embedded
 > Git per workspace, and a React SPA covering every feature. `ruff` clean, integration
 > test suite green.
 
 ## Documentation
+
+- **[docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)** — deliver reports via Gmail, Telegram & WhatsApp
+- **[docs/CLICKHOUSE_PRODUCTION_SETUP.md](docs/CLICKHOUSE_PRODUCTION_SETUP.md)** — production plan for ClickHouse analytical log database migration
+- **[docs/POSTMAN_COLLECTION.md](docs/POSTMAN_COLLECTION.md)** — complete Postman collection API reference
 
 - **[docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md)** — high-level overview, feature
   set, stack, and status.
@@ -21,9 +26,6 @@ and you have the whole stack on your machine.
 - **[docs/IMPLEMENTATION_FLOW.md](docs/IMPLEMENTATION_FLOW.md)** — how it was built phase
   by phase, end-to-end runtime traces, and a "where do I change X?" cheat-sheet.
 - **[docs/SETUP.md](docs/SETUP.md)** — running it (Docker or local) + troubleshooting.
-- **[docs/PRODUCTION_SETUP.md](docs/PRODUCTION_SETUP.md)** — production-grade deployment layout, HA cloud setup, and security checklist.
-- **[docs/PERFORMANCE_REPORT.md](docs/PERFORMANCE_REPORT.md)** — performance benchmarks, resource footprints, and database optimization analysis.
-- **[RESUME.md](RESUME.md)** — resume bullet points, technology stack list, and interview talking points.
 
 ---
 
@@ -51,12 +53,12 @@ run history and live-streamed per-step logs.
   as environment variables into every workflow run.
 - **Workflow engine** — GitHub-Actions-style YAML: top-level `env`, a list of `steps`,
   each running a shell command, with `continue_on_error` and per-step `env`.
-- **Scheduler & Timezones** — cron-scheduled workflows fire automatically (evaluated every minute). Supports timezone-aware evaluation (e.g. `Asia/Kolkata`) and displays the next 5 execution times.
+- **Scheduler** — cron-scheduled workflows fire automatically (evaluated every minute).
 - **Webhooks** — webhook-triggered workflows expose an unguessable public URL.
-- **Runs & logs** — full run history; each step records status, exit code, timing, and combined stdout/stderr, streamed live to the UI while running.
-- **File Manager Uploads & READMEs** — upload files directly from the UI, and automatically render the directory's `README.md` at the bottom of the files explorer.
-- **Notifications** — in-app notifications on run completion, with support for outbound SMTP TLS email notifications in workflows (e.g., Office 365).
-- **Dashboard & Snappy UI** — workspace/workflow/run counts, success rate, recent runs, with optimistic state toggles and browser-native navigation links.
+- **Runs & logs** — full run history; each step records status, exit code, timing, and
+  combined stdout/stderr, streamed live to the UI while running.
+- **Notifications** — in-app notifications on run completion.
+- **Dashboard** — workspace/workflow/run counts, success rate, recent runs.
 
 ---
 
@@ -85,6 +87,44 @@ steps:                          # required, runs top-to-bottom
     env:                        # per-step env, merged over the top-level env
       TARGET: s3://backups
 ```
+
+**Action steps — deliver reports (Gmail / Telegram / WhatsApp)**
+
+A step is either a shell step (`run:`) or an *action step* (`uses:`) that delivers a
+message through a channel you configured under a workspace's **Integrations** tab. The
+`with:` block is uniform across channels — each channel uses what it supports:
+
+```yaml
+steps:
+  - name: Build report
+    run: ./make_report.sh          # writes reports/daily.pdf
+
+  - name: Email the report
+    uses: gmail                    # gmail | telegram | whatsapp
+    with:
+      to: [alice@example.com, bob@example.com]
+      subject: Daily report
+      body: "Attached is today's report."
+      format: text                 # text | html | markdown
+      attachments: [reports/daily.pdf]
+
+  - name: Ping the team channel
+    uses: telegram
+    with:
+      to: "@ops_reports"
+      body: "✅ Daily report sent."
+```
+
+- `to` accepts one recipient or a list; `${VAR}` in `to`/`subject`/`body` is substituted
+  from the run environment.
+- `attachments` are workspace-relative file paths (25 MB total cap), so earlier steps can
+  generate a report and a later step can attach it.
+- Add a channel named `connection:` in `with:` to pick a specific connection when a
+  workspace has more than one of the same type.
+- Credentials live in encrypted **connections** (never in the YAML). Action-step logs
+  record delivery metadata (recipients, attachment names, provider ids) but **not** the
+  message body, so substituted secrets never leak into logs.
+- See **[docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)** for per-channel credential setup.
 
 **Execution semantics**
 
@@ -215,12 +255,12 @@ autoflow/
 │   ├── requirements.txt        # Runtime deps
 │   ├── pyproject.toml          # ruff / black / mypy / pytest config
 │   ├── alembic.ini
-│   ├── alembic/                # env.py + versions/0001_initial.py (all 9 tables)
+│   ├── alembic/                # env.py + versions/0001_initial.py (all 11 tables)
 │   ├── app/
 │   │   ├── main.py             # FastAPI app factory + ASGI entry (app.main:app)
 │   │   ├── core/               # config, database, security, crypto, storage, enums, exceptions
 │   │   ├── api/                # router.py + deps.py + v1/ (11 feature routers)
-│   │   ├── models/             # SQLAlchemy models (9 tables)
+│   │   ├── models/             # SQLAlchemy models (11 tables)
 │   │   ├── schemas/            # Pydantic I/O models
 │   │   ├── services/           # Business logic
 │   │   ├── repositories/       # Data access

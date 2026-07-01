@@ -76,7 +76,9 @@ class WorkflowService:
             webhook_token=token,
             created_by_id=user_id,
         )
-        return await self.repo.add(wf)
+        wf = await self.repo.add(wf)
+        await self.db.refresh(wf)
+        return wf
 
     async def update(
         self, wf: Workflow, data: WorkflowUpdate
@@ -138,7 +140,7 @@ class WorkflowService:
         for idx, step in enumerate(parsed.steps):
             self.db.add(
                 StepRun(
-                    run_id=run.id, name=step.name, step_index=idx, command=step.run
+                    run_id=run.id, name=step.name, step_index=idx, command=step.command_display
                 )
             )
         await self.db.flush()

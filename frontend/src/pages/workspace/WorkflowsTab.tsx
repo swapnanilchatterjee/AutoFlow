@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Plus, Workflow as WorkflowIcon } from "lucide-react";
 import { api } from "../../lib/api";
 import type { TriggerType, Workflow } from "../../lib/types";
-import { Badge, Button, Card, EmptyState, ErrorText, Input, Label, Modal, Spinner, StatusPill } from "../../components/ui";
+import {
+  Badge, Button, Card, EmptyState, ErrorText, Field, Input, Modal, Skeleton, StatusPill,
+  cn, useToast,
+} from "../../components/ui";
 
 const STARTER = `name: My Workflow
 env:
@@ -10,20 +14,28 @@ env:
 steps:
   - name: Say hello
     run: echo "$GREETING from AutoFlow"
-  - name: Build
-    run: |
-      echo "building..."
-      echo done
+
+  # Deliver a report to Gmail / Telegram / WhatsApp.
+  # Add a connection under the Integrations tab first, then:
+  # - name: Email the report
+  #   uses: gmail            # or: telegram / whatsapp
+  #   with:
+  #     to: [you@example.com]
+  #     subject: Daily report
+  #     body: "Attached is today's report."
+  #     attachments: [report.txt]
 `;
+
+const TRIGGERS: TriggerType[] = ["manual", "schedule", "webhook"];
 
 export default function WorkflowsTab({ wsId, canWrite }: { wsId: string; canWrite: boolean }) {
   const navigate = useNavigate();
+  const toast = useToast();
   const [items, setItems] = useState<Workflow[] | null>(null);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [trigger, setTrigger] = useState<TriggerType>("manual");
   const [cron, setCron] = useState("0 * * * *");
-  const [tz, setTz] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -36,9 +48,9 @@ export default function WorkflowsTab({ wsId, canWrite }: { wsId: string; canWrit
       const wf = await api.workflows.create(wsId, {
         name, definition: STARTER, trigger_type: trigger,
         schedule_cron: trigger === "schedule" ? cron : undefined,
-        schedule_tz: trigger === "schedule" ? tz : undefined,
       });
       setOpen(false); setName("");
+      toast.success(`Workflow “${wf.name}” created`);
       navigate(`/workspaces/${wsId}/workflows/${wf.id}`);
     } catch (e) { setError(e instanceof Error ? e.message : "Failed"); }
     finally { setBusy(false); }
@@ -46,88 +58,83 @@ export default function WorkflowsTab({ wsId, canWrite }: { wsId: string; canWrit
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-500">Automations that run a sequence of shell steps.</p>
-        {canWrite && <Button onClick={() => setOpen(true)}>New workflow</Button>}
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm text-muted">Automations that run a sequence of shell steps and deliver reports.</p>
+        {canWrite && <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> New workflow</Button>}
       </div>
 
       {!items ? (
-        <div className="flex justify-center py-16"><Spinner className="h-6 w-6" /></div>
+        <div className="space-y-2">{[0, 1].map((i) => <Skeleton key={i} className="h-16" />)}</div>
       ) : items.length === 0 ? (
         <EmptyState
+          icon={<WorkflowIcon className="h-5 w-5" />}
           title="No workflows yet"
-          hint="Create a workflow to automate builds, jobs and scheduled tasks."
-          action={canWrite ? <Button onClick={() => setOpen(true)}>New workflow</Button> : undefined}
+          description="Create a workflow to automate builds, jobs and scheduled reports."
+          action={canWrite ? <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> New workflow</Button> : undefined}
         />
       ) : (
         <div className="space-y-2">
           {items.map((wf) => (
-            <Link
+            <Card
               key={wf.id}
-              to={`/workspaces/${wsId}/workflows/${wf.id}`}
-              className="block hover:no-underline"
+              className="flex cursor-pointer items-center justify-between p-5 border border-slate-100 bg-white hover:-translate-y-[1px] hover:shadow-md transition-all duration-200"
+              {...{ onClick: () => navigate(`/workspaces/${wsId}/workflows/${wf.id}`) }}
             >
-              <Card className="flex cursor-pointer items-center justify-between p-4 transition-colors hover:border-zinc-700">
-                <div className="flex items-center gap-3">
-                  <div>
-                    <p className="font-medium text-zinc-100">{wf.name}</p>
-                    <p className="font-mono text-xs text-zinc-500">{wf.slug}</p>
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-50 to-indigo-50 text-brand border border-brand-100/30">
+                  <WorkflowIcon className="h-5 w-5" />
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge>{wf.trigger_type}</Badge>
-                  {!wf.enabled && <StatusPill status="cancelled" />}
+                <div>
+                  <p className="font-bold text-slate-800 hover:text-brand-600 transition-colors">{wf.name}</p>
+                  <p className="font-mono text-[11px] font-medium text-slate-400 mt-0.5">{wf.slug}</p>
                 </div>
-              </Card>
-            </Link>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge tone="neutral" className="capitalize text-xs">{wf.trigger_type}</Badge>
+                {!wf.enabled && <StatusPill status="cancelled" />}
+              </div>
+            </Card>
           ))}
         </div>
       )}
 
-      <Modal open={open} onClose={() => setOpen(false)} title="New workflow">
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="New workflow"
+        description="You can edit the steps after creating it."
+        footer={
+          <>
+            <Button variant="secondary" type="button" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="button" onClick={create} disabled={busy || !name}>{busy ? "Creating…" : "Create workflow"}</Button>
+          </>
+        }
+      >
         <form onSubmit={(e) => { e.preventDefault(); create(); }} className="space-y-4">
-          <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} autoFocus placeholder="My Workflow" /></div>
-          <div>
-            <Label>Trigger</Label>
-            <div className="flex gap-2">
-              {(["manual", "schedule", "webhook"] as TriggerType[]).map((t) => (
-                <button key={t} type="button" onClick={() => setTrigger(t)}
-                  className={`flex-1 rounded-lg border px-3 py-2 text-sm capitalize ${trigger === t ? "border-emerald-500 bg-emerald-500/10 text-emerald-400" : "border-zinc-700 text-zinc-400 hover:border-zinc-600"}`}>
+          <Field label="Name" htmlFor="wf-name"><Input id="wf-name" value={name} onChange={(e) => setName(e.target.value)} autoFocus placeholder="My Workflow" /></Field>
+          <Field label="Trigger">
+            <div className="grid grid-cols-3 gap-2">
+              {TRIGGERS.map((t) => (
+                <button
+                  key={t} type="button" onClick={() => setTrigger(t)}
+                  className={cn(
+                    "rounded-lg border px-3 py-2 text-sm capitalize transition-colors",
+                    trigger === t
+                      ? "border-brand bg-brand-50 text-brand-700"
+                      : "border-line text-muted hover:border-[#DDE1E7] hover:text-ink",
+                  )}
+                >
                   {t}
                 </button>
               ))}
             </div>
-          </div>
+          </Field>
           {trigger === "schedule" && (
-            <>
-              <div><Label>Cron schedule</Label><Input value={cron} onChange={(e) => setCron(e.target.value)} className="font-mono" placeholder="0 * * * *" /></div>
-              <div>
-                <Label>Timezone</Label>
-                <select
-                  value={tz}
-                  onChange={(e) => setTz(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                >
-                  <option value="UTC">UTC</option>
-                  <option value={Intl.DateTimeFormat().resolvedOptions().timeZone}>{Intl.DateTimeFormat().resolvedOptions().timeZone} (Local)</option>
-                  <option value="America/New_York">America/New_York (EST/EDT)</option>
-                  <option value="America/Chicago">America/Chicago (CST/CDT)</option>
-                  <option value="America/Denver">America/Denver (MST/MDT)</option>
-                  <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
-                  <option value="Europe/London">Europe/London (GMT/BST)</option>
-                  <option value="Europe/Paris">Europe/Paris (CET/CEST)</option>
-                  <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
-                  <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
-                  <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
-                </select>
-              </div>
-            </>
+            <Field label="Cron schedule" htmlFor="wf-cron" help="Standard 5-field cron, evaluated in UTC.">
+              <Input id="wf-cron" value={cron} onChange={(e) => setCron(e.target.value)} className="font-mono" placeholder="0 * * * *" />
+            </Field>
           )}
           <ErrorText>{error}</ErrorText>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" type="button" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={busy || !name}>{busy ? "Creating…" : "Create"}</Button>
-          </div>
         </form>
       </Modal>
     </div>

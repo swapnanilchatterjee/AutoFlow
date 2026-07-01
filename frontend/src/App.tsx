@@ -10,11 +10,12 @@ import WorkspaceDetail from "./pages/WorkspaceDetail";
 import WorkflowDetail from "./pages/WorkflowDetail";
 import RunDetail from "./pages/RunDetail";
 import Notifications from "./pages/Notifications";
+import Deliveries from "./pages/Deliveries";
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center bg-zinc-950"><Spinner className="h-6 w-6" /></div>;
+    return <div className="flex min-h-screen items-center justify-center bg-canvas"><Spinner className="h-6 w-6" /></div>;
   }
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/workspaces/:wsId/workflows/:wfId" element={<WorkflowDetail />} />
         <Route path="/workspaces/:wsId/workflows/:wfId/runs/:runId" element={<RunDetail />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="/deliveries" element={<Deliveries />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

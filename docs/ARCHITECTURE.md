@@ -342,3 +342,36 @@ write actions are hidden/disabled based on the caller's workspace role (derived 
 - [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) — high-level overview and status.
 - [SETUP.md](SETUP.md) — running it, locally or via Docker.
 - [README.md](../README.md) — feature tour and the workflow YAML format.
+
+## Messaging integrations (report delivery)
+
+Workflows deliver reports through pluggable **channels** (Gmail, Telegram, WhatsApp),
+configured per workspace as encrypted **connections**.
+
+- **`app/integrations/`** — `base.py` (the `Channel` ABC, `OutboundMessage`, `Attachment`,
+  and an injectable HTTP transport), one module per channel (`gmail`, `telegram`,
+  `whatsapp`), `compose.py` (turns a step's `with:` block into an `OutboundMessage`,
+  substituting `${VAR}` and reading attachments via `safe_join` with a 25 MB cap), and
+  `registry.py` (the channel table + a `catalog()` the UI consumes).
+- **`connections` table** — `type`, `name`, `enabled`, and a Fernet-encrypted JSON
+  `config_encrypted`. The service layer redacts secret fields on read and merges on update
+  so a blank secret keeps the stored value.
+- **Executor path** — the workflow parser accepts a step with `uses:` + `with:` (exactly
+  one of `run`/`uses` per step). For an action step the executor resolves the connection
+  (sync query), builds the channel from the registry, composes the message, and calls
+  `channel.send(...)`. Only delivery metadata is logged — never the message body.
+- **Testability** — because every channel takes an injected transport (SMTP factory or
+  HTTP-post callable), the whole delivery path is unit-tested with fakes and needs no
+  outbound network.
+
+Adding a channel is a matter of subclassing `Channel` and registering it; the Integrations
+UI, the `uses:` validator, and the executor all pick it up from the registry.
+
+### Delivery log
+
+Every action-step send is recorded in the **`deliveries`** table (workflow/run denormalized
+for display, channel, connection name, recipients, format, attachment count, and status:
+`executing` → `delivered`/`failed`). The executor inserts an `executing` row just before the
+send and updates it on completion. Two read endpoints back the Delivery log UI — a global
+feed scoped to the caller's workspaces (`GET /deliveries`) and a workspace-scoped one
+(`GET /workspaces/{id}/deliveries`), both filterable by status and channel.

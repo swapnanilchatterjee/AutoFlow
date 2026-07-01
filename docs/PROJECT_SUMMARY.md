@@ -54,7 +54,7 @@ role-based access, and a real run history — without sending anything to a thir
 |-----------------------|---------|
 | Backend Python files  | 67 (~3,780 LOC) |
 | Frontend TS/TSX files | 21 (~1,797 LOC) |
-| REST API endpoints    | 45      |
+| REST API endpoints    | 51      |
 | Database tables       | 9       |
 | ORM model files       | 5       |
 | Service classes       | 8       |
@@ -72,7 +72,7 @@ role-based access, and a real run history — without sending anything to a thir
   workflow run through the **synchronous executor** — env/variable/secret injection,
   artifact written to the workspace, fail-stops-pipeline + step skipping, failure
   notification, and dashboard aggregation.
-- **`ruff` clean** across the backend; app imports with **45 routes** registered.
+- **`ruff` clean** across the backend; app imports with **51 routes** registered.
 - **Frontend builds clean** (`tsc && vite build`): 51 modules, ~65 KB gzipped JS.
 
 ## Repository layout

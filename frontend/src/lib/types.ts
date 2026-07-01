@@ -70,7 +70,7 @@ export interface Workflow {
   trigger_type: TriggerType;
   schedule_cron: string | null;
   schedule_tz: string | null;
-  next_runs: string[] | null;
+  next_runs?: string[] | null;
   enabled: boolean;
   webhook_token: string | null;
   created_at: string;
@@ -127,3 +127,62 @@ export interface DashboardStats {
     status: string; run_number: number; created_at: string;
   }[];
 }
+
+export interface ChannelField {
+  key: string;
+  label: string;
+  secret: boolean;
+  required: boolean;
+  help: string;
+  placeholder: string;
+}
+
+export interface ChannelCatalogItem {
+  type: string;
+  label: string;
+  send_hint: string;
+  supports_attachments: boolean;
+  supports_subject: boolean;
+  supports_html: boolean;
+  config_fields: ChannelField[];
+}
+
+export interface Connection {
+  id: string;
+  type: string;
+  name: string;
+  enabled: boolean;
+  config_summary: Record<string, string>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConnectionTestResult {
+  ok: boolean;
+  detail: string;
+}
+
+export interface Delivery {
+  id: string;
+  workspace_id: string;
+  workspace_slug: string | null;
+  workflow_id: string | null;
+  workflow_name: string;
+  run_id: string | null;
+  run_number: number | null;
+  step_name: string;
+  channel: string;
+  connection_name: string;
+  recipients: string[];
+  recipient_count: number;
+  body_format: string;
+  subject: string | null;
+  attachment_count: number;
+  status: string;
+  detail: string | null;
+  provider_refs: string[];
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+}
+

@@ -41,6 +41,11 @@ class ForbiddenError(AppException):
     detail = "Permission denied"
 
 
+class ValidationError(AppException):
+    status_code = 422
+    detail = "Invalid request"
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppException)
     async def _handle_app_exception(

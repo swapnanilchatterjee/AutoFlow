@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Bell, FolderGit2, LayoutDashboard, LogOut, ScrollText, User, Workflow } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { api } from "../lib/api";
-import { cn } from "./ui";
+import { Avatar, cn, Menu, MenuItem, MenuLabel, MenuSeparator } from "./ui";
 
 const NAV = [
-  { to: "/", label: "Dashboard", end: true, icon: "▣" },
-  { to: "/workspaces", label: "Workspaces", icon: "▤" },
-  { to: "/notifications", label: "Notifications", icon: "◔" },
+  { to: "/", label: "Dashboard", end: true, icon: LayoutDashboard },
+  { to: "/workspaces", label: "Workspaces", icon: FolderGit2 },
+  {to: "/deliveries", label: "Logs", icon: ScrollText},
+  { to: "/notifications", label: "Notifications", icon: Bell },
 ];
 
 export default function Layout() {
@@ -25,54 +27,124 @@ export default function Layout() {
   }, []);
 
   function handleLogout() { logout(); navigate("/login"); }
+  const displayName = user?.full_name || user?.username || "User";
 
   return (
-    <div className="flex min-h-screen bg-zinc-950 text-zinc-100">
-      <aside className="flex w-60 flex-col border-r border-zinc-800 bg-zinc-900/40">
-        <Link to="/" className="flex items-center gap-2 px-5 py-5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500 text-sm font-bold text-zinc-950">A</span>
-          <span className="text-lg font-semibold">AutoFlow</span>
-        </Link>
-        <nav className="flex-1 space-y-1 px-3">
-          {NAV.map((n) => (
-            <NavLink
-              key={n.to}
-              to={n.to}
-              end={n.end}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors",
-                  isActive ? "bg-zinc-800 text-zinc-100" : "text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-200",
-                )
-              }
-            >
-              <span className="flex items-center gap-3"><span className="text-zinc-500">{n.icon}</span>{n.label}</span>
-              {n.to === "/notifications" && unread > 0 && (
-                <span className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold text-zinc-950">{unread}</span>
-              )}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="border-t border-zinc-800 p-3">
-          <div className="mb-2 flex items-center gap-2 px-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-700 text-sm">
-              {(user?.full_name || user?.username || "?").charAt(0).toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{user?.full_name || user?.username}</p>
-              <p className="truncate text-xs text-zinc-500">{user?.is_superuser ? "Admin" : user?.role}</p>
-            </div>
+    <div className="flex min-h-screen bg-slate-50/50 text-slate-800">
+      {/* Sidebar */}
+      <aside className="fixed inset-y-0 left-0 hidden w-[248px] flex-col border-r border-slate-100 bg-white md:flex">
+        <Link to="/" className="flex items-center gap-3 px-6 py-6">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 text-white shadow-md shadow-brand/10 transition-transform duration-300 hover:scale-105">
+            <Workflow className="h-5 w-5" />
+          </span>
+          <div>
+            <span className="block text-[16px] font-bold leading-none tracking-tight text-slate-900">AutoFlow</span>
+            <span className="mt-1 block text-[11px] font-medium leading-none text-slate-400">Automation platform</span>
           </div>
-          <button onClick={handleLogout} className="w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200">
-            Sign out
-          </button>
+        </Link>
+
+        <div className="px-4">
+          <p className="px-3 pb-2 pt-4 text-[10px] font-bold uppercase tracking-wider text-slate-400">Menu</p>
+          <nav className="space-y-1">
+            {NAV.map((n) => {
+              const Icon = n.icon;
+              return (
+                <NavLink
+                  key={n.to}
+                  to={n.to}
+                  end={n.end}
+                  className={({ isActive }) =>
+                    cn(
+                      "group flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-semibold transition-all duration-200 border",
+                      isActive
+                        ? "bg-brand-50/60 text-brand-600 border-brand-100/50 shadow-sm shadow-brand/5"
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-800 border-transparent",
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <span className="flex items-center gap-3">
+                        <Icon className={cn("h-[18px] w-[18px] transition-transform duration-200 group-hover:scale-105", isActive ? "text-brand" : "text-slate-400 group-hover:text-slate-600")} />
+                        {n.label}
+                      </span>
+                      {n.to === "/notifications" && unread > 0 && (
+                        <span className="rounded-full bg-brand-600 px-2 py-0.5 text-[10px] font-bold text-white tnum shadow-sm">
+                          {unread > 99 ? "99+" : unread}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
+          </nav>
+        </div>
+
+        <div className="mt-auto p-4">
+          <div className="rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3 shadow-inner">
+            <p className="text-[11px] font-bold text-slate-500">Self-hosted · Free</p>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-slate-400">All workflow runs execution remains local on your server.</p>
+          </div>
         </div>
       </aside>
-      <main className="flex-1 overflow-auto">
-        <div className="mx-auto max-w-6xl px-8 py-8">
-          <Outlet />
-        </div>
-      </main>
+
+      {/* Main column */}
+      <div className="flex min-h-screen flex-1 flex-col md:pl-[248px]">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line bg-surface/90 px-5 backdrop-blur">
+          <Link to="/" className="flex items-center gap-2 md:hidden">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand text-white">
+              <Workflow className="h-4 w-4" />
+            </span>
+            <span className="text-sm font-semibold">AutoFlow</span>
+          </Link>
+          <div className="hidden md:block" />
+
+          <div className="flex items-center gap-1">
+            <Link
+              to="/notifications"
+              className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-hairline hover:text-ink"
+              aria-label="Notifications"
+            >
+              <Bell className="h-[18px] w-[18px]" />
+              {unread > 0 && (
+                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-surface" />
+              )}
+            </Link>
+
+            <Menu
+              align="right"
+              width="w-56"
+              trigger={
+                <button className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 transition-colors hover:bg-hairline">
+                  <Avatar name={displayName} />
+                  <span className="hidden text-left sm:block">
+                    <span className="block max-w-[140px] truncate text-[13px] font-medium leading-tight">{displayName}</span>
+                    <span className="block text-[11px] leading-tight text-faint">
+                      {user?.is_superuser ? "Admin" : user?.role || "Member"}
+                    </span>
+                  </span>
+                </button>
+              }
+            >
+              <MenuLabel>{user?.email}</MenuLabel>
+              <MenuSeparator />
+              <MenuItem icon={<User className="h-4 w-4" />} onClick={() => navigate("/workspaces")}>
+                Your workspaces
+              </MenuItem>
+              <MenuItem icon={<LogOut className="h-4 w-4" />} danger onClick={handleLogout}>
+                Sign out
+              </MenuItem>
+            </Menu>
+          </div>
+        </header>
+
+        <main className="flex-1 scroll-slim">
+          <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

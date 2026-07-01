@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Workflow } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { ApiError } from "../lib/api";
-import { Button, ErrorText, Input, Label } from "../components/ui";
+import { Button, ErrorText, Field, Input } from "../components/ui";
 
 export default function Login() {
   const { login } = useAuth();
@@ -20,30 +21,31 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950 p-6 text-zinc-100">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-base font-bold text-zinc-950">A</span>
-          <span className="text-xl font-semibold">AutoFlow</span>
+    <div className="flex min-h-screen items-center justify-center bg-slate-50/50 p-6">
+      <div className="w-full max-w-md">
+        <div className="mb-8 flex flex-col items-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 text-white shadow-lg shadow-brand/10 mb-3">
+            <Workflow className="h-6 w-6" />
+          </span>
+          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">AutoFlow</h2>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">Self-Hosted Automation</p>
         </div>
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-          <h1 className="text-lg font-semibold">Sign in</h1>
-          <p className="mb-5 mt-1 text-sm text-zinc-500">Welcome back. Enter your details.</p>
-          <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-4">
-            <div>
-              <Label>Username or email</Label>
-              <Input value={username} onChange={(e) => setUsername(e.target.value)} autoFocus placeholder="you@example.com" />
-            </div>
-            <div>
-              <Label>Password</Label>
-              <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
-            </div>
+        <div className="rounded-2xl border border-slate-100 bg-white p-8 shadow-premium">
+          <h1 className="text-xl font-bold text-slate-900">Welcome Back</h1>
+          <p className="mb-6 mt-1 text-sm text-slate-500">Sign in to your account to manage pipelines.</p>
+          <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-5">
+            <Field label="Username or email" htmlFor="username">
+              <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} autoFocus placeholder="you@example.com" />
+            </Field>
+            <Field label="Password" htmlFor="password">
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+            </Field>
             <ErrorText>{error}</ErrorText>
-            <Button type="submit" disabled={busy} className="w-full">{busy ? "Signing in…" : "Sign in"}</Button>
+            <Button type="submit" disabled={busy} className="w-full mt-2 font-bold shadow-md shadow-brand/5">{busy ? "Signing in…" : "Sign in"}</Button>
           </form>
         </div>
-        <p className="mt-4 text-center text-sm text-zinc-500">
-          No account? <Link to="/register" className="text-emerald-400 hover:underline">Create one</Link>
+        <p className="mt-4 text-center text-sm text-muted">
+          No account? <Link to="/register" className="font-medium text-brand hover:text-brand-700">Create one</Link>
         </p>
       </div>
     </div>

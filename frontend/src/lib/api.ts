@@ -1,7 +1,7 @@
 import type {
-  BranchInfo, CommitInfo, DashboardStats, DirListing, FileContent, FileNode,
-  GitStatus, Member, Notification, Secret, Tokens, User, Variable, Workflow,
-  WorkflowRun, Workspace,
+  BranchInfo, ChannelCatalogItem, CommitInfo, Connection, ConnectionTestResult,
+  DashboardStats, Delivery, DirListing, FileContent, FileNode, GitStatus, Member,
+  Notification, Secret, Tokens, User, Variable, Workflow, WorkflowRun, Workspace,
 } from "./types";
 
 const BASE = "/api/v1";
@@ -58,6 +58,7 @@ async function request<T>(path: string, opts: Opts = {}, retry = true): Promise<
   if (access) headers["Authorization"] = `Bearer ${access}`;
   let body: BodyInit | undefined;
   if (opts.form) { body = opts.form; }
+  else if (opts.body instanceof FormData) { body = opts.body; }
   else if (opts.body !== undefined) {
     headers["Content-Type"] = "application/json";
     body = JSON.stringify(opts.body);
@@ -134,23 +135,9 @@ export const api = {
     remove: (ws: string, path: string) =>
       request<{ detail: string }>(`/workspaces/${ws}/files${qs({ path })}`, { method: "DELETE" }),
     upload: (ws: string, path: string, file: File) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      const headers: Record<string, string> = {};
-      const access = tokenStore.access;
-      if (access) headers["Authorization"] = `Bearer ${access}`;
-      return fetch(`/api/v1/workspaces/${ws}/files/upload${qs({ path })}`, {
-        method: "POST",
-        headers,
-        body: formData,
-      }).then(async (res) => {
-        if (!res.ok) {
-          let detail = `${res.status} ${res.statusText}`;
-          try { const j = await res.json(); detail = j.detail || j.error || detail; } catch {}
-          throw new ApiError(res.status, detail);
-        }
-        return res.json() as Promise<FileNode>;
-      });
+      const fd = new FormData();
+      fd.append("file", file);
+      return request<FileNode>(`/workspaces/${ws}/files/upload${qs({ path })}`, { method: "POST", body: fd });
     },
   },
   git: {
@@ -201,6 +188,25 @@ export const api = {
     unreadCount: () => request<{ count: number }>("/notifications/unread-count"),
     markRead: (id: string) => request<Notification>(`/notifications/${id}/read`, { method: "POST" }),
     markAllRead: () => request<{ detail: string }>("/notifications/read-all", { method: "POST" }),
+  },
+  connections: {
+    catalog: (ws: string) =>
+      request<ChannelCatalogItem[]>(`/workspaces/${ws}/connections/catalog`),
+    list: (ws: string) => request<Connection[]>(`/workspaces/${ws}/connections`),
+    create: (ws: string, body: { type: string; name: string; config: Record<string, string>; enabled?: boolean }) =>
+      request<Connection>(`/workspaces/${ws}/connections`, { method: "POST", body }),
+    update: (ws: string, id: string, body: { name?: string; config?: Record<string, string>; enabled?: boolean }) =>
+      request<Connection>(`/workspaces/${ws}/connections/${id}`, { method: "PATCH", body }),
+    remove: (ws: string, id: string) =>
+      request<{ detail: string }>(`/workspaces/${ws}/connections/${id}`, { method: "DELETE" }),
+    test: (ws: string, id: string, to: string, includeAttachment = false) =>
+      request<ConnectionTestResult>(`/workspaces/${ws}/connections/${id}/test`, { method: "POST", body: { to, include_attachment: includeAttachment } }),
+  },
+  deliveries: {
+    list: (params: { limit?: number; status?: string; channel?: string; workspace_id?: string } = {}) =>
+      request<Delivery[]>(`/deliveries${qs(params)}`),
+    listForWorkspace: (ws: string, params: { limit?: number; status?: string; channel?: string } = {}) =>
+      request<Delivery[]>(`/workspaces/${ws}/deliveries${qs(params)}`),
   },
   dashboard: { stats: () => request<DashboardStats>("/dashboard/stats") },
 };
