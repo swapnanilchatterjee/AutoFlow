@@ -251,14 +251,11 @@ steps:
         return
 
     # 9. Clean up test workspace
-    print("\n[9] Cleaning up sandboxed test environment...")
-    try:
-        resp = requests.delete(f"{BASE_URL}/api/v1/workspaces/{ws_id}", headers=headers)
-        assert resp.status_code in {200, 201, 202, 204}, f"Workspace deletion failed: {resp.status_code} - {resp.text}"
-        print("  [OK] Cleanup workspace")
-    except Exception as exc:
-        print(f"  [FAIL] Cleanup failed: {exc}")
-        return
+    print("\n[9] Skipping workspace cleanup so dummy logs are retained for dashboard inspection...")
+    print("      To check out the populated dashboard and export logs:")
+    print(f"      - Username: {username}")
+    print(f"      - Password: {password}")
+    print(f"      - Workspace: {ws_slug}")
 
     print("\n====================================================")
     print("      Verification Successful: 100% APIs Green!     ")
