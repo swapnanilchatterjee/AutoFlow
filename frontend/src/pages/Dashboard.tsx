@@ -100,6 +100,42 @@ export default function Dashboard() {
     return { total, channelBreakdown };
   }, [filteredDeliveries]);
 
+  // Helper function to extract date parts in target timezone
+  const getTzParts = (dt: Date, tz: string) => {
+    try {
+      const options: Intl.DateTimeFormatOptions = {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+        timeZone: tz === "local" ? undefined : tz
+      };
+      const parts = new Intl.DateTimeFormat("en-US", options).formatToParts(dt);
+      const findPart = (name: string) => parts.find(p => p.type === name)?.value || "00";
+      return {
+        year: findPart("year"),
+        month: findPart("month"),
+        day: findPart("day"),
+        hour: findPart("hour"),
+        minute: findPart("minute"),
+        second: findPart("second")
+      };
+    } catch {
+      // Fallback to UTC if timezone is invalid/unsupported
+      return {
+        year: String(dt.getUTCFullYear()),
+        month: String(dt.getUTCMonth() + 1).padStart(2, "0"),
+        day: String(dt.getUTCDate()).padStart(2, "0"),
+        hour: String(dt.getUTCHours()).padStart(2, "0"),
+        minute: String(dt.getUTCMinutes()).padStart(2, "0"),
+        second: String(dt.getUTCSeconds()).padStart(2, "0")
+      };
+    }
+  };
+
   // Line Chart Data Aggregation (based on runs)
   const chartData = useMemo(() => {
     if (filteredRuns.length === 0) {
@@ -110,26 +146,11 @@ export default function Dashboard() {
 
     filteredRuns.forEach((r) => {
       const dt = new Date(r.created_at);
+      const tzParts = getTzParts(dt, timezone);
+      const { year, month, day: dateNum, hour: hours, minute: minutes, second: seconds } = tzParts;
+      
       let key = "";
       let label = "";
-
-      const tz = timezone;
-      
-      let year = dt.getFullYear();
-      let month = String(dt.getMonth() + 1).padStart(2, "0");
-      let dateNum = String(dt.getDate()).padStart(2, "0");
-      let hours = String(dt.getHours()).padStart(2, "0");
-      let minutes = String(dt.getMinutes()).padStart(2, "0");
-      let seconds = String(dt.getSeconds()).padStart(2, "0");
-      
-      if (tz === "utc") {
-        year = dt.getUTCFullYear();
-        month = String(dt.getUTCMonth() + 1).padStart(2, "0");
-        dateNum = String(dt.getUTCDate()).padStart(2, "0");
-        hours = String(dt.getUTCHours()).padStart(2, "0");
-        minutes = String(dt.getUTCMinutes()).padStart(2, "0");
-        seconds = String(dt.getUTCSeconds()).padStart(2, "0");
-      }
 
       if (granularity === "sec") {
         key = `${year}-${month}-${dateNum}T${hours}:${minutes}:${seconds}`;
@@ -142,10 +163,10 @@ export default function Dashboard() {
         label = `${hours}:00`;
       } else if (granularity === "day") {
         key = `${year}-${month}-${dateNum}`;
-        label = dt.toLocaleDateString(tz === "utc" ? "en-US" : undefined, { timeZone: tz === "utc" ? "UTC" : undefined, month: "short", day: "numeric" });
+        label = dt.toLocaleDateString(undefined, { timeZone: timezone === "local" ? undefined : timezone, month: "short", day: "numeric" });
       } else if (granularity === "month") {
         key = `${year}-${month}`;
-        label = dt.toLocaleDateString(tz === "utc" ? "en-US" : undefined, { timeZone: tz === "utc" ? "UTC" : undefined, month: "short", year: "numeric" });
+        label = dt.toLocaleDateString(undefined, { timeZone: timezone === "local" ? undefined : timezone, month: "short", year: "numeric" });
       }
 
       const existing = groupMap.get(key);
@@ -164,10 +185,8 @@ export default function Dashboard() {
       }
     });
 
-    // Sort chronologically
     const sortedEntries = Array.from(groupMap.values()).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
     if (sortedEntries.length === 1) {
-      // Add a 0-value prefix point so we have 2 points for the line graph to render
       sortedEntries.unshift({
         label: "Start",
         success: 0,
@@ -179,7 +198,8 @@ export default function Dashboard() {
     const maxVal = Math.max(1, ...sortedEntries.map((e) => e.success + e.failed + e.executing));
 
     return { points: sortedEntries, maxVal };
-  }, [filteredRuns, granularity]);
+  }, [filteredRuns, granularity, timezone]);
+
 
   const handleExportCSV = () => {
     if (filteredDeliveries.length === 0) {
@@ -324,13 +344,21 @@ export default function Dashboard() {
                 const newTz = e.target.value;
                 localStorage.setItem("af_timezone", newTz);
                 setTimezone(newTz);
-                toast.info(`Dashboard timezone updated to ${newTz === "utc" ? "UTC" : "Local Browser Time"}`);
+                toast.info(`Dashboard timezone updated to ${newTz === "local" ? "Local Browser Time" : newTz}`);
               }}
               className="h-8 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
             >
               <option value="local">Local Time</option>
-              <option value="utc">UTC</option>
+              <option value="UTC">UTC (GMT+00:00)</option>
+              <option value="Asia/Kolkata">Asia/Kolkata (IST, GMT+05:30)</option>
+              <option value="America/New_York">America/New_York (EST/EDT)</option>
+              <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+              <option value="Europe/London">Europe/London (BST/GMT)</option>
+              <option value="Europe/Paris">Europe/Paris (CEST/CET)</option>
+              <option value="Asia/Tokyo">Asia/Tokyo (JST, GMT+09:00)</option>
+              <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
             </select>
+
           </div>
         </div>
       </div>
@@ -739,9 +767,10 @@ export default function Dashboard() {
               <TBody>
                 {filteredDeliveries.map((d) => {
                   const dt = new Date(d.created_at);
-                  const formattedDate = dt.toLocaleDateString(timezone === "utc" ? "en-US" : undefined, { timeZone: timezone === "utc" ? "UTC" : undefined, month: "short", day: "numeric", year: "numeric" });
-                  const formattedTime = dt.toLocaleTimeString(timezone === "utc" ? "en-US" : undefined, { timeZone: timezone === "utc" ? "UTC" : undefined, hour: "2-digit", minute: "2-digit" }) + (timezone === "utc" ? " UTC" : "");
+                  const formattedDate = dt.toLocaleDateString(undefined, { timeZone: timezone === "local" ? undefined : timezone, month: "short", day: "numeric", year: "numeric" });
+                  const formattedTime = dt.toLocaleTimeString(undefined, { timeZone: timezone === "local" ? undefined : timezone, hour: "2-digit", minute: "2-digit" }) + (timezone === "local" ? "" : ` (${timezone})`);
                   const Icon = CHANNEL_ICON[d.channel] ?? Send;
+
 
                   return (
                     <TR key={d.id}>
