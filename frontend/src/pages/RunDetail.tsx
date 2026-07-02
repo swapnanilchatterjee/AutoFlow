@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Check, ChevronDown, ChevronLeft, Loader2, Minus, X } from "lucide-react";
+import { Check, ChevronDown, ChevronLeft, Loader2, Minus, X, Download } from "lucide-react";
 import { api } from "../lib/api";
 import type { StepRun, WorkflowRun } from "../lib/types";
 import { Badge, Button, ErrorText, Skeleton, StatusPill, cn, fmtDate } from "../components/ui";
@@ -76,7 +76,28 @@ export default function RunDetail() {
             <span>{steps.length} step{steps.length === 1 ? "" : "s"}</span>
           </div>
         </div>
-        {isActive && <Button variant="danger" onClick={cancel}>Cancel run</Button>}
+        <div className="flex items-center gap-2">
+          {steps.some((s) => s.logs?.trim()) && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                const allLogs = (run.steps ?? [])
+                  .map((s) => `=== Step: ${s.name} (Status: ${s.status}, Exit Code: ${s.exit_code}) ===\n${s.logs}`)
+                  .join("\n\n");
+                const blob = new Blob([allLogs], { type: "text/plain;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `workflow_run_${run.run_number}_logs.txt`;
+                link.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              <Download className="h-4 w-4" /> Download all logs
+            </Button>
+          )}
+          {isActive && <Button variant="danger" onClick={cancel}>Cancel run</Button>}
+        </div>
       </div>
 
       {run.error && <div className="mb-4"><ErrorText>{run.error}</ErrorText></div>}
@@ -126,9 +147,9 @@ function StepNode({ step, last }: { step: StepRun; last: boolean }) {
       {/* Step card */}
       <div className={cn("min-w-0 flex-1", last ? "pb-0" : "pb-4")}>
         <div className="overflow-hidden rounded-xl border border-line bg-surface">
-          <button
+          <div
+            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-canvas/60 cursor-pointer"
             onClick={() => setOpen((o) => !o)}
-            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-canvas/60"
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -140,17 +161,48 @@ function StepNode({ step, last }: { step: StepRun; last: boolean }) {
             <div className="flex shrink-0 items-center gap-3">
               {dur && <span className="text-xs text-faint tnum">{dur}</span>}
               <StatusPill status={step.status} />
+              {step.logs?.trim() && (
+                <button
+                  title="Download step logs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const blob = new Blob([step.logs], { type: "text/plain;charset=utf-8" });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = `${step.name.toLowerCase().replace(/\s+/g, "_")}_logs.txt`;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="rounded p-1 text-faint hover:bg-canvas hover:text-ink transition-colors"
+                >
+                  <Download className="h-4 w-4" />
+                </button>
+              )}
               <ChevronDown className={cn("h-4 w-4 text-faint transition-transform", open && "rotate-180")} />
             </div>
-          </button>
+          </div>
 
           {open && (
-            <div className="border-t border-line">
-              <pre className="scroll-slim max-h-96 overflow-auto bg-[#0E1117] px-4 py-3 font-mono text-xs leading-relaxed text-[#D6DAE1]">
-                {step.logs?.trim()
-                  ? step.logs
-                  : <span className="text-[#6B7280]">{step.status === "skipped" ? "Skipped." : "No output yet."}</span>}
-              </pre>
+            <div className="border-t border-line bg-[#0E1117] py-3 px-4 overflow-x-auto scroll-slim max-h-96">
+              {step.logs?.trim() ? (
+                <div className="font-mono text-[11px] leading-relaxed text-[#D6DAE1] grid grid-cols-[2.5rem_1fr] gap-x-4">
+                  {step.logs.split("\n").map((line, idx) => (
+                    <div key={idx} className="contents group hover:bg-[#1f242c]">
+                      <span className="text-right pr-2 text-[#484F58] hover:text-[#C9D1D9] border-r border-[#30363D]/80 select-none text-[10px] font-bold">
+                        {idx + 1}
+                      </span>
+                      <span className="pl-3 select-text whitespace-pre-wrap break-all text-[#E6EDF3]">
+                        {line}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <pre className="font-mono text-xs text-[#6B7280]">
+                  {step.status === "skipped" ? "Skipped." : "No output yet."}
+                </pre>
+              )}
             </div>
           )}
         </div>

@@ -25,3 +25,27 @@ class Connection(UUIDMixin, TimestampMixin, Base):
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     config_encrypted: Mapped[str] = mapped_column(Text, nullable=False)
     enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    schedule_cron: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    schedule_tz: Mapped[str | None] = mapped_column(String(60), nullable=True, default="UTC")
+    schedule_to: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    @property
+    def next_runs(self) -> list[str] | None:
+        if not self.schedule_cron:
+            return None
+        from datetime import datetime, UTC
+        from zoneinfo import ZoneInfo
+        from croniter import croniter
+        try:
+            tz = ZoneInfo(self.schedule_tz or "UTC")
+        except Exception:
+            tz = UTC
+        now = datetime.now(tz)
+        try:
+            iter = croniter(self.schedule_cron, now)
+            runs = []
+            for _ in range(5):
+                runs.append(iter.get_next(datetime).isoformat())
+            return runs
+        except Exception:
+            return None

@@ -193,9 +193,9 @@ export const api = {
     catalog: (ws: string) =>
       request<ChannelCatalogItem[]>(`/workspaces/${ws}/connections/catalog`),
     list: (ws: string) => request<Connection[]>(`/workspaces/${ws}/connections`),
-    create: (ws: string, body: { type: string; name: string; config: Record<string, string>; enabled?: boolean }) =>
+    create: (ws: string, body: { type: string; name: string; config: Record<string, string>; enabled?: boolean; schedule_cron?: string | null; schedule_tz?: string | null; schedule_to?: string | null }) =>
       request<Connection>(`/workspaces/${ws}/connections`, { method: "POST", body }),
-    update: (ws: string, id: string, body: { name?: string; config?: Record<string, string>; enabled?: boolean }) =>
+    update: (ws: string, id: string, body: { name?: string; config?: Record<string, string>; enabled?: boolean; schedule_cron?: string | null; schedule_tz?: string | null; schedule_to?: string | null }) =>
       request<Connection>(`/workspaces/${ws}/connections/${id}`, { method: "PATCH", body }),
     remove: (ws: string, id: string) =>
       request<{ detail: string }>(`/workspaces/${ws}/connections/${id}`, { method: "DELETE" }),

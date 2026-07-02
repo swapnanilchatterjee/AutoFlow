@@ -153,6 +153,10 @@ export interface Connection {
   name: string;
   enabled: boolean;
   config_summary: Record<string, string>;
+  schedule_cron: string | null;
+  schedule_tz: string | null;
+  schedule_to: string | null;
+  next_runs?: string[] | null;
   created_at: string;
   updated_at: string;
 }

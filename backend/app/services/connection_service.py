@@ -53,6 +53,10 @@ def _to_read(conn: Connection) -> ConnectionRead:
         name=conn.name,
         enabled=conn.enabled,
         config_summary=_redact(conn.type, _decrypt_config(conn)),
+        schedule_cron=conn.schedule_cron,
+        schedule_tz=conn.schedule_tz,
+        schedule_to=conn.schedule_to,
+        next_runs=conn.next_runs,
         created_at=conn.created_at,
         updated_at=conn.updated_at,
     )
@@ -89,6 +93,9 @@ class ConnectionService:
             name=data.name,
             config_encrypted=encrypt(json.dumps(data.config)),
             enabled=data.enabled,
+            schedule_cron=data.schedule_cron or None,
+            schedule_tz=data.schedule_tz or "UTC",
+            schedule_to=data.schedule_to or None,
         )
         await self.repo.add(conn)
         return _to_read(conn)
@@ -103,6 +110,12 @@ class ConnectionService:
             conn.name = data.name
         if data.enabled is not None:
             conn.enabled = data.enabled
+        if data.schedule_cron is not None:
+            conn.schedule_cron = data.schedule_cron or None
+        if data.schedule_tz is not None:
+            conn.schedule_tz = data.schedule_tz or "UTC"
+        if data.schedule_to is not None:
+            conn.schedule_to = data.schedule_to or None
         if data.config is not None:
             secret_keys = get_channel_class(conn.type).secret_keys()
             merged = _decrypt_config(conn)

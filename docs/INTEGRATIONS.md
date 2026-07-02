@@ -94,8 +94,18 @@ sent directly; `attachments` are uploaded to the Media endpoint and delivered as
 ## Testing a connection
 
 Each connection has a **Send test** action (⋯ menu on the connection card) that delivers a
-short test message to a recipient you enter — a quick way to confirm credentials before
+not-stored test message to a recipient you enter — a quick way to confirm credentials before
 wiring the channel into a workflow.
+
+## Scheduled Diagnostic/Heartbeat Checks
+
+You can configure connections to run automated diagnostic/heartbeat checks on a schedule:
+- **Cron expression**: Standard 5-field cron format (e.g., `0 * * * *` for hourly, `0 9 * * 1-5` for weekday mornings).
+- **Timezone**: Evaluates the schedule in the selected timezone (e.g., `Asia/Kolkata`, `America/New_York`, `UTC`).
+- **Recipient**: The destination address (email, chat ID, phone number) for the scheduled check.
+
+When active, the Celery scheduler will periodically trigger a diagnostic dispatch test, verifying that the credentials are still valid, and record it in the **Delivery log**.
+
 
 ## Delivery log (execution history)
 

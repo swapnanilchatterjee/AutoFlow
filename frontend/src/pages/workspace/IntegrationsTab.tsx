@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft, Mail, MessageCircle, MoreVertical, Pencil, Plus, Send,
-  SendHorizontal, Trash2,
+  SendHorizontal, Trash2, Clock,
 } from "lucide-react";
+import { Cron } from "croner";
 import { api } from "../../lib/api";
 import type { ChannelCatalogItem, Connection } from "../../lib/types";
 import {
   Badge, Button, Card, EmptyState, ErrorText, Field, Help, IconButton, Input, Menu,
-  MenuItem, MenuSeparator, Modal, Skeleton, cn, fmtRelative, useToast,
+  MenuItem, MenuSeparator, Modal, Skeleton, cn, fmtRelative, useToast, Select,
 } from "../../components/ui";
 
 const META: Record<string, { icon: typeof Mail; tint: string; blurb: string }> = {
@@ -21,8 +22,11 @@ interface FormState {
   name: string;
   config: Record<string, string>;
   enabled: boolean;
+  schedule_cron: string;
+  schedule_tz: string;
+  schedule_to: string;
 }
-const EMPTY: FormState = { type: null, name: "", config: {}, enabled: true };
+const EMPTY: FormState = { type: null, name: "", config: {}, enabled: true, schedule_cron: "", schedule_tz: "UTC", schedule_to: "" };
 
 export default function IntegrationsTab({ wsId, canManage }: { wsId: string; canManage: boolean }) {
   const toast = useToast();
@@ -53,7 +57,15 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
   function openAdd() { setEditingId(null); setError(null); setForm({ ...EMPTY, config: {} }); }
   function openEdit(c: Connection) {
     setEditingId(c.id); setError(null);
-    setForm({ type: c.type, name: c.name, config: {}, enabled: c.enabled });
+    setForm({
+      type: c.type,
+      name: c.name,
+      config: {},
+      enabled: c.enabled,
+      schedule_cron: c.schedule_cron ?? "",
+      schedule_tz: c.schedule_tz ?? "UTC",
+      schedule_to: c.schedule_to ?? "",
+    });
   }
   function pickType(type: string) {
     setForm((f) => (f ? { ...f, type, name: f.name || defaultName(type, conns) } : f));
@@ -64,10 +76,24 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
     setError(null); setBusy(true);
     try {
       if (editingId) {
-        await api.connections.update(wsId, editingId, { name: form.name, config: form.config, enabled: form.enabled });
+        await api.connections.update(wsId, editingId, {
+          name: form.name,
+          config: form.config,
+          enabled: form.enabled,
+          schedule_cron: form.schedule_cron || null,
+          schedule_tz: form.schedule_tz || "UTC",
+          schedule_to: form.schedule_to || null,
+        });
         toast.success(`“${form.name}” updated`);
       } else {
-        await api.connections.create(wsId, { type: form.type, name: form.name, config: form.config });
+        await api.connections.create(wsId, {
+          type: form.type,
+          name: form.name,
+          config: form.config,
+          schedule_cron: form.schedule_cron || null,
+          schedule_tz: form.schedule_tz || "UTC",
+          schedule_to: form.schedule_to || null,
+        });
         toast.success(`${catalogByType[form.type]?.label ?? form.type} connected`);
       }
       setForm(null); setEditingId(null); loadConns();
@@ -166,6 +192,20 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
                       </div>
                     ))}
                   </dl>
+                )}
+
+                {c.schedule_cron && (
+                  <div className="mt-3 rounded-lg bg-slate-50/70 p-2.5 border border-slate-100/80 text-xs">
+                    <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+                      <Clock className="h-3.5 w-3.5 text-slate-400" />
+                      <span>Scheduled Check: <code className="font-mono text-slate-800 bg-slate-200/60 px-1 py-0.5 rounded">{c.schedule_cron}</code> ({c.schedule_tz})</span>
+                    </div>
+                    {c.schedule_to && (
+                      <div className="mt-1 text-[11px] text-slate-500 pl-5">
+                        Recipient: <span className="font-mono text-slate-700 font-medium">{c.schedule_to}</span>
+                      </div>
+                    )}
+                  </div>
                 )}
                 <p className="mt-3 text-[11px] text-faint">Updated {fmtRelative(c.updated_at)}</p>
               </Card>
@@ -292,6 +332,76 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
                 </ol>
               </div>
             )}
+            {/* Connection Scheduling section */}
+            <div className="border-t border-line pt-4 mt-4 space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Scheduled Heartbeat/Diagnostic Dispatch</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Cron expression" htmlFor="conn-cron" help="Standard 5-field cron: Min Hour Day Month Day-of-Week. Leave blank to disable.">
+                  <Input
+                    id="conn-cron"
+                    value={form?.schedule_cron ?? ""}
+                    onChange={(e) => setForm((f) => (f ? { ...f, schedule_cron: e.target.value } : f))}
+                    placeholder="e.g. 0 * * * *"
+                    className="font-mono text-xs"
+                  />
+                </Field>
+                <Field label="Timezone" htmlFor="conn-tz" help="Timezone for evaluating schedule.">
+                  <Select
+                    id="conn-tz"
+                    value={form?.schedule_tz ?? "UTC"}
+                    onChange={(e) => setForm((f) => (f ? { ...f, schedule_tz: e.target.value } : f))}
+                    className="text-xs"
+                  >
+                    <option value="UTC">UTC (GMT+00:00)</option>
+                    <option value="Asia/Kolkata">Asia/Kolkata (IST, GMT+05:30)</option>
+                    <option value="America/New_York">America/New_York (EST/EDT)</option>
+                    <option value="America/Chicago">America/Chicago (CST/CDT)</option>
+                    <option value="America/Denver">America/Denver (MST/MDT)</option>
+                    <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+                    <option value="Europe/London">Europe/London (BST/GMT)</option>
+                    <option value="Europe/Paris">Europe/Paris (CEST/CET)</option>
+                    <option value="Asia/Singapore">Asia/Singapore (SGT, GMT+08:00)</option>
+                    <option value="Asia/Tokyo">Asia/Tokyo (JST, GMT+09:00)</option>
+                    <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
+                  </Select>
+                </Field>
+              </div>
+
+              {form?.schedule_cron && (
+                <Field label="Recipient for Scheduled Check" htmlFor="conn-to" help="The destination email address, phone number or chat ID.">
+                  <Input
+                    id="conn-to"
+                    value={form?.schedule_to ?? ""}
+                    onChange={(e) => setForm((f) => (f ? { ...f, schedule_to: e.target.value } : f))}
+                    placeholder={recipientPlaceholder(form.type || "")}
+                  />
+                </Field>
+              )}
+
+              {form?.schedule_cron && (() => {
+                try {
+                  const c = new Cron(form.schedule_cron, { timezone: form.schedule_tz || "UTC" });
+                  const nexts = c.nextRuns(5);
+                  return (
+                    <div className="rounded-xl bg-slate-50 p-4 border border-slate-100 mt-2">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Next 5 scheduled runs</p>
+                      <div className="space-y-1 font-mono text-[11px] text-slate-600">
+                        {nexts.map((d, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <span className="w-4 text-slate-300 font-bold">{idx + 1}.</span>
+                            <span>{d.toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                } catch {
+                  return (
+                    <p className="text-xs text-danger font-medium mt-1">Invalid cron expression</p>
+                  );
+                }
+              })()}
+            </div>
             <ErrorText>{error}</ErrorText>
           </form>
         )}
