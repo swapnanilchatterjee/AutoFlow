@@ -30,9 +30,9 @@ role-based access, and a real run history — without sending anything to a thir
   both injected as env vars into runs.
 - **Workflow engine** — GitHub-Actions-style YAML (`env` + `steps[].run` +
   `continue_on_error`), validated on save.
-- **Scheduler** — cron-scheduled workflows, evaluated every minute.
+- **Scheduler** — cron-scheduled workflows (evaluated every minute) and scheduled heartbeat/diagnostic checks directly on integrations.
 - **Webhooks** — unguessable public trigger URLs.
-- **Runs & logs** — per-step status, exit code, timing, and live-tailed output.
+- **Runs & logs** — per-step status, exit code, timing, and live-tailed output styled with line numbers like GitHub Actions, plus individual step and run-level raw log downloading.
 - **Notifications** — in-app, on run completion.
 - **Dashboard** — counts, success rate, recent runs.
 
@@ -45,22 +45,22 @@ role-based access, and a real run history — without sending anything to a thir
 | Database    | PostgreSQL 16                                                                    |
 | Security    | PyJWT (HS256), bcrypt, cryptography (Fernet)                                     |
 | Engine libs | PyYAML (parse), croniter (schedule), GitPython (Git)                             |
-| Frontend    | React 18, TypeScript, Vite, React Router, TailwindCSS                           |
+| Frontend    | React 18, TypeScript, Vite, React Router, TailwindCSS, croner                   |
 | Ops         | Docker Compose (6 services), Makefile                                            |
 
 ## Codebase at a glance
 
 | Metric                | Count   |
 |-----------------------|---------|
-| Backend Python files  | 67 (~3,780 LOC) |
-| Frontend TS/TSX files | 21 (~1,797 LOC) |
-| REST API endpoints    | 51      |
+| Backend Python files  | 68 (~3,840 LOC) |
+| Frontend TS/TSX files | 21 (~1,920 LOC) |
+| REST API endpoints    | 52      |
 | Database tables       | 9       |
 | ORM model files       | 5       |
 | Service classes       | 8       |
 | Repository classes    | 5       |
 | API routers           | 11      |
-| Test suite            | 6 tests, all green |
+| Test suite            | 16 passed, all green |
 
 ## Status & verification
 
