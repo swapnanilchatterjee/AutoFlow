@@ -42,6 +42,17 @@ AutoFlow is a **100% free, self-hosted automation platform** built for developer
 *   **Vertex Data Dots**: Visible coordinates plotted directly on paths to denote execution ticks.
 *   **Expanded white tooltip card**: High-contrast, floating tooltip displaying clear, larger stats.
 
+### 🔔 4. Dynamic Notifications Dropdown
+*   **Recent 5 Timeline**: The header bell icon now opens a rich floating dropdown menu showing the 5 most recent read/unread system notifications.
+*   **Direct Navigation**: Clicking any notification item automatically marks it as read, updates the global unread count in real-time, and routes directly to the relevant resource or run.
+*   **Clean Status Color-Coding**: Displays clear color indicators (Success vs. Failures) and human-friendly time tags.
+*   **"See all" shortcut**: Quick redirect button at the footer to navigate to the full notifications inbox list.
+
+### 📂 5. SPA Route & Tab State Persistence
+*   **URL Parameter Binding**: Workspace details sub-tabs (Files, Workflows, Contacts, Secrets, Members, Settings) are now bound to the `?tab=` URL query parameter.
+*   **Flawless Back-Navigation**: Going back from a workflow's run details or editor correctly remembers and returns the user to the `Workflows` tab rather than defaulting to the first `Files` tab.
+*   **Refresh Proof**: Reloading the page maintains the currently active view tab.
+
 ---
 
 ## 🏗️ Technical Architecture & Scale

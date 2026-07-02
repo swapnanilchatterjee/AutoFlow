@@ -4,6 +4,7 @@ import { Bell, FolderGit2, LayoutDashboard, LogOut, ScrollText, User, Workflow }
 import { useAuth } from "../auth/AuthContext";
 import { api } from "../lib/api";
 import { Avatar, cn, Menu, MenuItem, MenuLabel, MenuSeparator } from "./ui";
+import type { Notification } from "../lib/types";
 
 const NAV = [
   { to: "/", label: "Dashboard", end: true, icon: LayoutDashboard },
@@ -16,6 +17,15 @@ export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [unread, setUnread] = useState(0);
+  const [recentNotifications, setRecentNotifications] = useState<Notification[]>([]);
+
+  const fetchRecent = () => {
+    api.notifications.list()
+      .then((res) => {
+        setRecentNotifications(res.slice(0, 5));
+      })
+      .catch(() => {});
+  };
 
   useEffect(() => {
     let active = true;
@@ -25,6 +35,10 @@ export default function Layout() {
     const id = setInterval(poll, 20000);
     return () => { active = false; clearInterval(id); };
   }, []);
+
+  useEffect(() => {
+    fetchRecent();
+  }, [unread]);
 
   function handleLogout() { logout(); navigate("/login"); }
   const displayName = user?.full_name || user?.username || "User";
@@ -101,16 +115,76 @@ export default function Layout() {
           <div className="hidden md:block" />
 
           <div className="flex items-center gap-1">
-            <Link
-              to="/notifications"
-              className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-hairline hover:text-ink"
-              aria-label="Notifications"
+            <Menu
+              align="right"
+              width="w-80"
+              trigger={
+                <button
+                  className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-hairline hover:text-ink"
+                  aria-label="Notifications"
+                >
+                  <Bell className="h-[18px] w-[18px]" />
+                  {unread > 0 && (
+                    <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-surface" />
+                  )}
+                </button>
+              }
             >
-              <Bell className="h-[18px] w-[18px]" />
-              {unread > 0 && (
-                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-surface" />
-              )}
-            </Link>
+              <MenuLabel>Recent Notifications</MenuLabel>
+              <MenuSeparator />
+              <div className="max-h-80 overflow-y-auto">
+                {recentNotifications.length === 0 ? (
+                  <div className="px-4 py-6 text-center text-xs text-slate-400">
+                    No notifications yet.
+                  </div>
+                ) : (
+                  recentNotifications.map((n) => (
+                    <button
+                      key={n.id}
+                      onClick={() => {
+                        if (!n.is_read) {
+                          api.notifications.markRead(n.id).then(() => {
+                            api.notifications.unreadCount().then((r) => setUnread(r.count)).catch(() => {});
+                          }).catch(() => {});
+                        }
+                        if (n.link) {
+                          navigate(n.link);
+                        }
+                      }}
+                      className={cn(
+                        "flex w-full flex-col gap-1 border-b border-slate-50 px-4 py-2.5 text-left text-xs transition-colors hover:bg-slate-50 last:border-0",
+                        !n.is_read && "bg-brand-50/20 font-medium"
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className={cn(
+                          "font-bold truncate",
+                          n.type === "success" ? "text-emerald-600" : "text-rose-600"
+                        )}>
+                          {n.title}
+                        </span>
+                        {!n.is_read && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-brand-600 shrink-0" />
+                        )}
+                      </div>
+                      {n.message && <p className="text-slate-500 line-clamp-2">{n.message}</p>}
+                      <span className="text-[10px] text-slate-400">
+                        {new Date(n.created_at).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+              <MenuSeparator />
+              <div className="p-1">
+                <button
+                  onClick={() => navigate("/notifications")}
+                  className="flex w-full items-center justify-center gap-1.5 rounded-lg py-1.5 text-center text-xs font-bold text-brand hover:bg-brand-50 transition-colors"
+                >
+                  See all notifications
+                </button>
+              </div>
+            </Menu>
 
             <Menu
               align="right"

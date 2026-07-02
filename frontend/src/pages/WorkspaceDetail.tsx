@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   ChevronLeft, Contact, FileCode2, KeyRound, Send, Settings, Users, Workflow,
 } from "lucide-react";
@@ -30,7 +30,12 @@ export default function WorkspaceDetail() {
   const { wsId = "" } = useParams();
   const [ws, setWs] = useState<Workspace | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState("files");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") || "files";
+
+  const setTab = (newTab: string) => {
+    setSearchParams({ tab: newTab });
+  };
 
   const load = useCallback(() => {
     api.workspaces.get(wsId).then(setWs).catch((e) => setError(e.message));

@@ -63,7 +63,7 @@ export default function WorkflowDetail() {
 
   return (
     <div>
-      <Link to={`/workspaces/${wsId}`} className="mb-3 inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-ink">
+      <Link to={`/workspaces/${wsId}?tab=workflows`} className="mb-3 inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-ink">
         <ChevronLeft className="h-4 w-4" /> Workspace
       </Link>
       <PageHeader
