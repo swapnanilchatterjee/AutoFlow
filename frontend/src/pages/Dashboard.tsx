@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Calendar, CheckCircle2, Download, Mail, MessageCircle, Play,
-  Send, TrendingUp, XCircle
+  Send, TrendingUp, XCircle, X
 } from "lucide-react";
 import { api } from "../lib/api";
 import type { DashboardStats, Delivery } from "../lib/types";
@@ -26,6 +26,8 @@ export default function Dashboard() {
   const [granularity, setGranularity] = useState<Granularity>("day");
   const [chartView, setChartView] = useState<"all" | "success" | "failed" | "executing">("all");
   const [zoom, setZoom] = useState<number>(1);
+  const [selectedPoint, setSelectedPoint] = useState<any | null>(null);
+
 
   // Date range state (default to past 7 days)
   const [startDateStr, setStartDateStr] = useState(() => {
@@ -55,6 +57,10 @@ export default function Dashboard() {
       return dt >= start && dt <= end;
     });
   }, [deliveries, startDateStr, endDateStr]);
+
+  useEffect(() => {
+    setSelectedPoint(null);
+  }, [filteredDeliveries, granularity]);
 
   // Compute stats based on the filtered deliveries
   const computedStats = useMemo(() => {
@@ -392,7 +398,8 @@ export default function Dashboard() {
                 <p className="text-xs text-slate-400 mt-1">Total: {chartData.points[0].success + chartData.points[0].failed} dispatches ({chartData.points[0].label})</p>
               </div>
             ) : svgPaths ? (
-              <div 
+              <>
+                <div 
                 className="relative w-full h-52 overflow-x-auto scroll-slim select-none"
                 onWheel={(e) => {
                   e.preventDefault();
@@ -494,26 +501,39 @@ export default function Dashboard() {
 
                   {/* Vertical interaction guide lines and tooltips */}
                   {svgPaths.points.map((pt, idx) => (
-                    <g key={idx} className="group/guide cursor-pointer">
+                    <g key={idx} className="group/guide cursor-pointer" onClick={() => setSelectedPoint(pt)}>
                       {/* Invisible wider interaction zone */}
                       <line
                         x1={pt.x}
                         y1={padding.top}
                         x2={pt.x}
-                        y2={svgDimensions.height - padding.bottom}
+                        y2={180 - padding.bottom}
                         stroke="transparent"
                         strokeWidth="24"
                       />
-                      {/* Visible dashed guide line on hover */}
+                      {/* Visible dashed guide line on hover, or solid indigo when selected */}
                       <line
                         x1={pt.x}
                         y1={padding.top}
                         x2={pt.x}
-                        y2={svgDimensions.height - padding.bottom}
-                        stroke="#cbd5e1"
-                        strokeDasharray="2 2"
-                        className="opacity-0 group-hover/guide:opacity-100 transition-opacity pointer-events-none"
+                        y2={180 - padding.bottom}
+                        stroke={selectedPoint?.label === pt.label ? "#4f46e5" : "#cbd5e1"}
+                        strokeDasharray={selectedPoint?.label === pt.label ? "none" : "2 2"}
+                        strokeWidth={selectedPoint?.label === pt.label ? 1.5 : 1}
+                        className={selectedPoint?.label === pt.label ? "opacity-100 pointer-events-none" : "opacity-0 group-hover/guide:opacity-100 transition-opacity pointer-events-none"}
                       />
+                      {/* Clicked selected point vertex circle overlay */}
+                      {selectedPoint?.label === pt.label && (
+                        <circle
+                          cx={pt.x}
+                          cy={pt.y}
+                          r="5.5"
+                          fill="#4f46e5"
+                          stroke="#ffffff"
+                          strokeWidth="2.2"
+                          className="pointer-events-none"
+                        />
+                      )}
                       {/* Hover tooltip - white, slightly larger */}
                       <g className="opacity-0 group-hover/guide:opacity-100 transition-opacity duration-150 pointer-events-none z-30">
                         <rect
@@ -556,6 +576,43 @@ export default function Dashboard() {
                   ))}
                 </svg>
               </div>
+              
+              {selectedPoint && (
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-4 rounded-xl bg-slate-50 border border-slate-200/60 p-3.5 shadow-sm animate-pop-in">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+                      <TrendingUp className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Selected Datapoint</span>
+                      <span className="text-[13px] font-extrabold text-slate-800">{selectedPoint.label}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-6">
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Delivered</span>
+                      <span className="text-xs font-extrabold text-emerald-600">{selectedPoint.success} run(s)</span>
+                    </div>
+                    <div className="text-right border-l border-slate-200 pl-6">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Failed</span>
+                      <span className="text-xs font-extrabold text-rose-600">{selectedPoint.failed} run(s)</span>
+                    </div>
+                    <div className="text-right border-l border-slate-200 pl-6">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Executing</span>
+                      <span className="text-xs font-extrabold text-amber-500">{selectedPoint.executing} run(s)</span>
+                    </div>
+                    <button 
+                      onClick={() => setSelectedPoint(null)}
+                      className="ml-2 rounded-lg p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors"
+                      title="Clear selection"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+              </>
             ) : null}
           </CardBody>
         </Card>

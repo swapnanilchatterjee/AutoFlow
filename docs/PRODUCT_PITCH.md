@@ -41,6 +41,7 @@ AutoFlow is a **100% free, self-hosted automation platform** built for developer
 *   **Status Filters**: Toggle between views to show all executions or isolate Success (Delivered), Failed, or Executing timelines.
 *   **Vertex Data Dots**: Visible coordinates plotted directly on paths to denote execution ticks.
 *   **Expanded white tooltip card**: High-contrast, floating tooltip displaying clear, larger stats.
+*   **Click-to-Inspect Overlay (Stock-style)**: Clicking any coordinate dot or vertical gridline anchors a solid indigo guide line, overlays a larger coordinate marker, and expands a dedicated datapoint card underneath the chart showing the exact timestamp and run counts.
 
 ### 🔔 4. Dynamic Notifications Dropdown
 *   **Recent 5 Timeline**: The header bell icon now opens a rich floating dropdown menu showing the 5 most recent read/unread system notifications.
@@ -52,6 +53,11 @@ AutoFlow is a **100% free, self-hosted automation platform** built for developer
 *   **URL Parameter Binding**: Workspace details sub-tabs (Files, Workflows, Contacts, Secrets, Members, Settings) are now bound to the `?tab=` URL query parameter.
 *   **Flawless Back-Navigation**: Going back from a workflow's run details or editor correctly remembers and returns the user to the `Workflows` tab rather than defaulting to the first `Files` tab.
 *   **Refresh Proof**: Reloading the page maintains the currently active view tab.
+
+### ✉️ 6. Optional Failure Email Notification with Logs
+*   **Toggle Switch**: Easily enable or disable emails on failed executions with a toggle switch on the Workflow Details page.
+*   **Direct-to-Inbox Alert**: Automatically delivers notifications to the email used during registration.
+*   **Comprehensive Log Logs**: Embeds the full step-by-step stdout/stderr execution logs and error details directly in the email body, saving time troubleshooting.
 
 ---
 

@@ -16,6 +16,7 @@ class WorkflowCreate(BaseModel):
     schedule_cron: str | None = None
     schedule_tz: str | None = "UTC"
     enabled: bool = True
+    email_on_failure: bool = False
 
 
 class WorkflowUpdate(BaseModel):
@@ -26,6 +27,7 @@ class WorkflowUpdate(BaseModel):
     schedule_cron: str | None = None
     schedule_tz: str | None = None
     enabled: bool | None = None
+    email_on_failure: bool | None = None
 
 
 class WorkflowRead(ORMModel):
@@ -40,6 +42,7 @@ class WorkflowRead(ORMModel):
     schedule_tz: str | None
     next_runs: list[str] | None = None
     enabled: bool
+    email_on_failure: bool
     webhook_token: str | None
     created_at: datetime
     updated_at: datetime

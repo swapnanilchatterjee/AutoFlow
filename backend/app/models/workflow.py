@@ -26,6 +26,7 @@ class Workflow(UUIDMixin, TimestampMixin, Base):
     schedule_cron: Mapped[str | None] = mapped_column(String(120), nullable=True)
     schedule_tz: Mapped[str | None] = mapped_column(String(60), nullable=True, default="UTC")
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    email_on_failure: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     webhook_token: Mapped[str | None] = mapped_column(
         String(64), unique=True, index=True, nullable=True
     )

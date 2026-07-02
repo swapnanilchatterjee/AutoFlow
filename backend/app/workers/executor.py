@@ -375,42 +375,63 @@ def _notify(db: Session, run: WorkflowRun, workflow: Workflow, *, ok: bool) -> N
         )
         db.commit()
 
-    if not ok and ws:
-        owner_id = ws.owner_id
-        if owner_id:
-            from app.models.user import User
-            owner = db.get(User, owner_id)
-            if owner and owner.email:
-                # Find an enabled gmail connection in the workspace
-                stmt = select(Connection).where(
-                    Connection.workspace_id == run.workspace_id,
-                    Connection.type == "gmail",
-                    Connection.enabled.is_(True)
-                )
-                conn = db.execute(stmt).scalars().first()
-                if conn:
-                    from app.integrations.base import OutboundMessage
-                    from app.services.connection_service import _decrypt_config
-                    from app.core.logging import logger
-                    try:
-                        decrypted = _decrypt_config(conn)
-                        channel = build_channel("gmail", decrypted)
-                        subject = f"⚠️ AutoFlow Alert: Workflow '{workflow.name}' Failed"
-                        body = (
-                            f"Hello Admin,\n\n"
-                            f"This is an automated alert that workflow '{workflow.name}' (Run #{run.run_number}) "
-                            f"failed in workspace '{ws.slug}'.\n\n"
-                            f"Error details:\n{run.error or 'Unknown error'}\n\n"
-                            f"You can view the run logs here: http://localhost:5173/workspaces/{run.workspace_id}/workflows/{workflow.id}/runs/{run.id}\n"
-                        )
-                        msg = OutboundMessage(
-                            recipients=[owner.email],
-                            subject=subject,
-                            body=body,
-                            body_format="text",
-                            attachments=[]
-                        )
-                        channel.send(msg)
-                        logger.info("Admin email failure alert sent to %s", owner.email)
-                    except Exception as exc:
-                        logger.error("Failed to send admin email alert: %s", exc)
+    if not ok and workflow.email_on_failure and ws:
+        from app.models.user import User
+        target_user = None
+        if run.triggered_by_id:
+            target_user = db.get(User, run.triggered_by_id)
+        if not target_user and workflow.created_by_id:
+            target_user = db.get(User, workflow.created_by_id)
+        if not target_user:
+            target_user = db.get(User, ws.owner_id)
+
+        if target_user and target_user.email:
+            # Find an enabled gmail connection in the workspace
+            stmt = select(Connection).where(
+                Connection.workspace_id == run.workspace_id,
+                Connection.type == "gmail",
+                Connection.enabled.is_(True)
+            )
+            conn = db.execute(stmt).scalars().first()
+            if conn:
+                from app.integrations.base import OutboundMessage
+                from app.services.connection_service import _decrypt_config
+                from app.core.logging import logger
+                from app.integrations.registry import build_channel
+                try:
+                    decrypted = _decrypt_config(conn)
+                    channel = build_channel("gmail", decrypted)
+                    subject = f"❌ AutoFlow Failure Alert: Workflow '{workflow.name}' (Run #{run.run_number}) Failed"
+
+                    # Construct step-by-step logs text
+                    logs_list = []
+                    for step in step_rows:
+                        logs_list.append(f"=== Step: {step.name} (Status: {step.status}) ===")
+                        logs_list.append(step.logs or "(no logs)")
+                        logs_list.append("\n")
+                    full_logs = "\n".join(logs_list)
+
+                    body = (
+                        f"Hello {target_user.full_name or target_user.username or 'User'},\n\n"
+                        f"This is an automated failure report alert that your workflow '{workflow.name}' (Run #{run.run_number}) "
+                        f"failed in workspace '{ws.slug}'.\n\n"
+                        f"Error Detail:\n{run.error or 'Unknown error'}\n\n"
+                        f"--------------------------------------------------\n"
+                        f"EXECUTION LOGS:\n"
+                        f"--------------------------------------------------\n"
+                        f"{full_logs}\n"
+                        f"--------------------------------------------------\n\n"
+                        f"You can view full run details inside your dashboard here:\n"
+                        f"http://localhost:5173/workspaces/{run.workspace_id}/workflows/{workflow.id}/runs/{run.id}\n"
+                    )
+                    msg = OutboundMessage(
+                        recipients=[target_user.email],
+                        subject=subject,
+                        body=body,
+                        body_format="text",
+                        attachments=[]
+                    )
+                    channel.send(msg)
+                    logger.info("Workflow failure alert email sent to %s", target_user.email)
+                except Exception as exc:
+                    logger.error("Failed to send workflow failure alert email: %s", exc)

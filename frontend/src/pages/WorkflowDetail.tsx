@@ -222,6 +222,14 @@ export default function WorkflowDetail() {
                 </div>
                 <Toggle on={wf.enabled} onClick={() => patch({ enabled: !wf.enabled })} />
               </div>
+
+              <div className="flex items-center justify-between border-t border-hairline pt-4">
+                <div>
+                  <p className="text-sm font-medium text-ink">Email on Failure</p>
+                  <p className="text-xs text-faint">Send failure alert &amp; step logs to you via Gmail connection.</p>
+                </div>
+                <Toggle on={wf.email_on_failure} onClick={() => patch({ email_on_failure: !wf.email_on_failure })} />
+              </div>
             </CardBody>
           </Card>
         </div>

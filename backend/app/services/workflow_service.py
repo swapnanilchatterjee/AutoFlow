@@ -73,6 +73,7 @@ class WorkflowService:
             schedule_cron=data.schedule_cron,
             schedule_tz=data.schedule_tz or "UTC",
             enabled=data.enabled,
+            email_on_failure=data.email_on_failure,
             webhook_token=token,
             created_by_id=user_id,
         )
@@ -100,6 +101,8 @@ class WorkflowService:
             wf.schedule_tz = data.schedule_tz or "UTC"
         if data.enabled is not None:
             wf.enabled = data.enabled
+        if data.email_on_failure is not None:
+            wf.email_on_failure = data.email_on_failure
         await self.db.flush()
         await self.db.refresh(wf)
         return wf

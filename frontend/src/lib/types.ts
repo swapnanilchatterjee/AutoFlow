@@ -72,6 +72,7 @@ export interface Workflow {
   schedule_tz: string | null;
   next_runs?: string[] | null;
   enabled: boolean;
+  email_on_failure: boolean;
   webhook_token: string | null;
   created_at: string;
   updated_at: string;
