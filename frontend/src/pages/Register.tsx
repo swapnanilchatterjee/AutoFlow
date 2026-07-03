@@ -7,7 +7,7 @@ import { Button, ErrorText, Field, Input, Logo } from "../components/ui";
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", username: "", password: "", full_name: "" });
+  const [form, setForm] = useState({ email: "", username: "", password: "", full_name: "", admin_token: "" });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -15,7 +15,7 @@ export default function Register() {
 
   async function submit() {
     setError(null); setBusy(true);
-    try { await register(form.email, form.username, form.password, form.full_name || undefined); navigate("/"); }
+    try { await register(form.email, form.username, form.password, form.full_name || undefined, form.admin_token || undefined); navigate("/"); }
     catch (e) { setError(e instanceof ApiError ? e.message : "Registration failed"); }
     finally { setBusy(false); }
   }
@@ -27,7 +27,7 @@ export default function Register() {
       
       {/* Ambient background glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-brand/10 blur-[130px] pointer-events-none" />
-
+ 
       <div className="relative z-10 w-full max-w-[400px]">
         <div className="mb-6 flex flex-col items-center">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 border border-slate-800 text-brand shadow-xl mb-3 transition-transform duration-300 hover:scale-105">
@@ -36,10 +36,10 @@ export default function Register() {
           <h2 className="text-2xl font-bold tracking-tight text-white leading-none">Report Scheduler</h2>
           <p className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500">Self-Hosted Automation</p>
         </div>
-
+ 
         <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl shadow-black/50">
           <h1 className="text-xl font-bold tracking-tight text-white">Create Account</h1>
-          <p className="mb-6 mt-1.5 text-xs text-slate-400">The first registered account will receive platform admin rights.</p>
+          <p className="mb-6 mt-1.5 text-xs text-slate-400">The first registered account will receive platform admin rights, or use an Admin Token below.</p>
           
           <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-4">
             <Field label="Full name" htmlFor="fn" labelClassName="!text-slate-300 text-xs font-medium">
@@ -80,6 +80,17 @@ export default function Register() {
                 value={form.password}
                 onChange={set("password")}
                 placeholder="Password"
+                className="!bg-slate-950 !border-slate-800/80 focus:!border-brand focus:!ring-brand/15 focus:!ring-2 !text-white placeholder:!text-slate-600 !h-10 rounded-lg text-sm transition-all"
+              />
+            </Field>
+
+            <Field label="Admin Registration Token" htmlFor="at" help={<span className="text-slate-500 text-[11px]">Optional. Required only to claim Administrator role.</span>} labelClassName="!text-slate-300 text-xs font-medium">
+              <Input
+                id="at"
+                type="password"
+                value={form.admin_token}
+                onChange={set("admin_token")}
+                placeholder="Token"
                 className="!bg-slate-950 !border-slate-800/80 focus:!border-brand focus:!ring-brand/15 focus:!ring-2 !text-white placeholder:!text-slate-600 !h-10 rounded-lg text-sm transition-all"
               />
             </Field>

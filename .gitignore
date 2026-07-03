@@ -22,6 +22,8 @@ frontend/dist/
 workspaces/
 *.log
 *.sqlite3
+backend/celerybeat-schedule
+celerybeat-schedule*
 
 # OS / editors
 .DS_Store

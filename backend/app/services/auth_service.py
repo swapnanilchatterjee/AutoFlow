@@ -30,15 +30,26 @@ class AuthService:
         if await self.users.get_by_username(data.username):
             raise ConflictError("Username already taken")
 
-        # First user to register becomes the platform superuser/admin.
-        first = not await self.users.any_exist()
+        from app.core.config import settings
+        from app.core.exceptions import AppException
+
+        is_admin = False
+        if data.admin_token:
+            if settings.ADMIN_REGISTRATION_TOKEN and data.admin_token == settings.ADMIN_REGISTRATION_TOKEN:
+                is_admin = True
+            else:
+                raise AppException("Invalid admin registration token", status_code=400)
+        else:
+            # Fallback to the first-user auto-admin logic if no token is provided
+            is_admin = not await self.users.any_exist()
+
         user = User(
             email=data.email.lower(),
             username=data.username,
             hashed_password=hash_password(data.password),
             full_name=data.full_name,
-            is_superuser=first,
-            role=UserRole.ADMIN.value if first else UserRole.MEMBER.value,
+            is_superuser=is_admin,
+            role=UserRole.ADMIN.value if is_admin else UserRole.MEMBER.value,
         )
         return await self.users.add(user)
 

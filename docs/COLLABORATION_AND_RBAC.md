@@ -39,8 +39,11 @@ The application enforces strict API-level and UI-level segregation:
 | **Admin Stats & Worker Control** | ✅ Yes | ❌ No | ❌ No | ❌ No |
 | **Workflow Access** | ✅ Yes | ✅ Yes (Workspace) | ✅ Yes (If Owned/Shared) | ❌ No |
 
-### API Protection
-FastAPI dependencies (`get_current_superuser`) protect administrative endpoints. Standard users attempting to query system-wide delivery logs (`/deliveries`), list users, or restart workers receive a `403 Forbidden` error.
+### API Protection & Administrative Access
+FastAPI dependencies (`get_current_superuser`) protect administrative endpoints. Standard users attempting to query system-wide logs (`/deliveries`), list users, or restart workers receive a `403 Forbidden` error.
+
+* **Admin Registration Security**: By default, the first registered user automatically obtains superuser status. To support secure multi-admin bootstrapping in production, an optional `ADMIN_REGISTRATION_TOKEN` can be defined in the environment. Providing this token in the signup form grants the newly registered account administrative (superuser) privileges.
+* **Global Audit Logs**: The administrative delivery log feed captures both integration action steps (e.g. Gmail, Telegram, WhatsApp) and all generic shell steps (`run:` commands). Shell runs are tracked under the `shell` channel to provide a complete, system-wide execution audit trail.
 
 ---
 

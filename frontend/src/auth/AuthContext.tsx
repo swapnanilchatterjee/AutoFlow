@@ -6,7 +6,7 @@ interface AuthState {
   user: User | null;
   loading: boolean;
   login: (username: string, password: string, remember?: boolean) => Promise<void>;
-  register: (email: string, username: string, password: string, fullName?: string) => Promise<void>;
+  register: (email: string, username: string, password: string, fullName?: string, adminToken?: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -37,8 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await api.auth.me());
   }
 
-  async function register(email: string, username: string, password: string, fullName?: string) {
-    await api.auth.register({ email, username, password, full_name: fullName });
+  async function register(email: string, username: string, password: string, fullName?: string, adminToken?: string) {
+    await api.auth.register({ email, username, password, full_name: fullName, admin_token: adminToken });
     await login(username, password);
   }
 

@@ -119,7 +119,7 @@ export const api = {
       tokenStore.set(t, remember);
       return t;
     },
-    register: (body: { email: string; username: string; password: string; full_name?: string }) =>
+    register: (body: { email: string; username: string; password: string; full_name?: string; admin_token?: string }) =>
       request<User>("/auth/register", { method: "POST", body }),
     me: () => request<User>("/auth/me"),
     logout: () => tokenStore.clear(),

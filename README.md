@@ -41,7 +41,7 @@ run history and live-streamed per-step logs.
 **Feature tour**
 
 - **Auth & RBAC** — JWT access/refresh tokens; the **first account to register becomes
-  the platform admin** (superuser). Per-workspace roles: `viewer` < `member` <
+  the platform admin** (superuser), or you can use a secure `ADMIN_REGISTRATION_TOKEN` if defined in the environment. Per-workspace roles: `viewer` < `member` <
   `maintainer` < `owner`.
 - **Workspaces** — create projects, invite members, assign roles, delete.
 - **File manager** — browse/create/edit/rename/delete files in a workspace tree, with
@@ -55,7 +55,7 @@ run history and live-streamed per-step logs.
   each running a shell command, with `continue_on_error` and per-step `env`.
 - **Scheduler** — cron-scheduled workflows fire automatically (evaluated every minute).
 - **Webhooks** — webhook-triggered workflows expose an unguessable public URL.
-- **Logs** — detailed execution and delivery history; tracks status, exit codes, recipient details, and message outputs. Fully searchable, filterable by date range, and exportable to CSV.
+- **Logs** — detailed execution and delivery history (capturing built-in integration channels like Gmail/Telegram and all generic shell steps under a `"shell"` channel); tracks status, exit codes, recipient details, and message outputs. Fully searchable, filterable by date range, and exportable to CSV.
 - **Notifications & Alerts** — in-app alerts on run completion, plus immediate admin email alerts on workflow failure.
 - **Dashboard** — workspace summary statistics and an interactive timeline line graph displaying 3 distinct paths (Delivered, Executing, Failed) with scale granularities from seconds up to months.
 

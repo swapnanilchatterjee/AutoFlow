@@ -570,6 +570,30 @@ def execute_run(db: Session, run_id: uuid.UUID) -> str:
             code = _run_action(db, step_row, pstep, step_env, run, workflow)
         else:
             code = _run_step(db, step_row, pstep.run, step_env, cwd)
+            try:
+                delivery = Delivery(
+                    workspace_id=run.workspace_id,
+                    workflow_id=workflow.id,
+                    run_id=run.id,
+                    run_number=run.run_number,
+                    workflow_name=workflow.name,
+                    step_name=step_row.name,
+                    channel="shell",
+                    connection_name="",
+                    recipients="",
+                    recipient_count=0,
+                    body_format="text",
+                    subject=pstep.run[:255] if pstep.run else "Shell command",
+                    attachment_count=0,
+                    status=DELIVERED if code == 0 else FAILED,
+                    detail=f"Shell step completed with exit code {code}" if code == 0 else f"Shell step failed with exit code {code}",
+                    started_at=step_row.started_at,
+                    finished_at=_now(),
+                )
+                db.add(delivery)
+                db.commit()
+            except Exception:
+                pass
             
         status = "success" if code == 0 else "failed"
         steps_status.append(status)

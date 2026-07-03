@@ -135,7 +135,7 @@ make migrate                               # apply (alembic upgrade head)
 ### 6A. First run — create your first automation
 
 1. Open **http://localhost:5173** and click **Create one** to register. The **first
-   account becomes the platform admin.**
+   account becomes the platform admin** (or you can register admins using a secure `ADMIN_REGISTRATION_TOKEN` if defined in `.env`).
 2. **New workspace** → give it a name. You're the `owner`.
 3. (Optional) **Secrets** tab → add a secret (encrypted) or a variable. Both are
    injected as environment variables into every run.
@@ -235,6 +235,7 @@ All settings come from environment variables / `.env` and are defined in
 | `ENVIRONMENT`                 | `development`           | `development`/`staging`/`production`    |
 | `DEBUG`                       | `true`                  | Verbose logs, SQL echo                  |
 | `SECRET_KEY`                  | —                       | **Required**, ≥ 32 chars                |
+| `ADMIN_REGISTRATION_TOKEN`    | —                       | Optional admin registration token       |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `30`                    | Used from Phase 2                       |
 | `REFRESH_TOKEN_EXPIRE_DAYS`   | `7`                     | Used from Phase 2                       |
 | `BACKEND_CORS_ORIGINS`        | `localhost:5173,:3000`  | Comma-separated origins                 |

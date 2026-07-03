@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ChevronDown, Download, Mail, MessageCircle, Paperclip, RefreshCw, ScrollText, Send,
+  ChevronDown, Download, Mail, MessageCircle, Paperclip, RefreshCw, ScrollText, Send, Terminal,
 } from "lucide-react";
 import { api } from "../lib/api";
 import type { Delivery } from "../lib/types";
@@ -11,10 +11,10 @@ import {
 } from "../components/ui";
 
 const CHANNEL_ICON: Record<string, typeof Mail> = {
-  gmail: Mail, telegram: Send, whatsapp: MessageCircle,
+  gmail: Mail, telegram: Send, whatsapp: MessageCircle, shell: Terminal,
 };
 const CHANNEL_LABEL: Record<string, string> = {
-  gmail: "Gmail", telegram: "Telegram", whatsapp: "WhatsApp",
+  gmail: "Gmail", telegram: "Telegram", whatsapp: "WhatsApp", shell: "Shell",
 };
 const FORMAT_TONE: Record<string, "neutral" | "brand" | "info"> = {
   text: "neutral", html: "info", markdown: "brand",
@@ -157,6 +157,7 @@ export default function Deliveries() {
             <option value="gmail">Gmail</option>
             <option value="telegram">Telegram</option>
             <option value="whatsapp">WhatsApp</option>
+            <option value="shell">Shell</option>
           </Select>
         </div>
         <div className="w-36">
