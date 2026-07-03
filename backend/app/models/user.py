@@ -21,3 +21,5 @@ class User(UUIDMixin, TimestampMixin, Base):
     last_password_changed: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     password_reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
     password_reset_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    theme_preference: Mapped[str | None] = mapped_column(String(10), nullable=True, default="system")

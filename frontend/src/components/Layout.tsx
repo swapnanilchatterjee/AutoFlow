@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
-  Bell, ChevronLeft, ChevronRight, FolderGit2, LayoutDashboard, LogOut, ScrollText,
-  Settings, Shield, User, X, Menu, UserCog,
+  Bell, ChevronLeft, ChevronRight, FolderGit2, Key, LayoutDashboard, LogOut, Mail, ScrollText,
+  Monitor, Settings, Shield, User, X, Menu, UserCog, ClipboardList, Clock,
 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { api } from "../lib/api";
 import {
   Avatar, Button, cn, Field, Input, Menu as Dropdown, MenuItem, MenuLabel, MenuSeparator,
-  Logo, Modal, ThemeToggle, useToast,
+  Logo, Modal, Select, ThemeToggle, useToast,
 } from "./ui";
+import { useTheme } from "../lib/ThemeContext";
 import type { Notification } from "../lib/types";
 
 const NAV = [
@@ -34,6 +35,15 @@ export default function Layout() {
   if (user?.is_superuser) {
     if (!navItems.find(n => n.to === "/admin")) {
       navItems.push({ to: "/admin", label: "Admin Panel", icon: Shield });
+    }
+    if (!navItems.find(n => n.to === "/admin/activity")) {
+      navItems.push({ to: "/admin/activity", label: "Audit Log", icon: ClipboardList });
+    }
+    if (!navItems.find(n => n.to === "/admin/settings/smtp")) {
+      navItems.push({ to: "/admin/settings/smtp", label: "SMTP Settings", icon: Mail });
+    }
+    if (!navItems.find(n => n.to === "/admin/settings/retention")) {
+      navItems.push({ to: "/admin/settings/retention", label: "Data Retention", icon: Clock });
     }
   }
 
@@ -102,7 +112,7 @@ export default function Layout() {
               </Link>
               <button
                 onClick={toggleSidebar}
-                className="mr-1 inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
+                className="mr-1 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
                 title="Collapse sidebar"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -171,12 +181,12 @@ export default function Layout() {
         {sidebarCollapsed && (
           <div className="border-t p-3 flex justify-center dark:border-slate-800">
             <button
-              onClick={toggleSidebar}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
-              title="Expand sidebar"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
+                onClick={toggleSidebar}
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
+                title="Expand sidebar"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
           </div>
         )}
       </aside>
@@ -185,10 +195,10 @@ export default function Layout() {
       <div className={cn("flex min-h-screen flex-1 flex-col transition-all duration-300", sidebarPadding)}>
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-white/80 backdrop-blur-xl dark:bg-slate-950/80 dark:border-slate-800 px-6">
           <div className="flex items-center gap-3 md:hidden">
-            <button
-              onClick={() => setShowMobileMenu(true)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
-            >
+              <button
+                onClick={() => setShowMobileMenu(true)}
+                className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+              >
               <Menu className="w-5 h-5" />
             </button>
             <Link to="/" className="flex items-center gap-2">
@@ -198,13 +208,13 @@ export default function Layout() {
           </div>
           <div className="hidden md:flex items-center">
             {sidebarCollapsed && (
-              <button
-                onClick={toggleSidebar}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
-                title="Expand sidebar"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
+            <button
+              onClick={toggleSidebar}
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
+              title="Expand sidebar"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
             )}
           </div>
 
@@ -216,7 +226,7 @@ export default function Layout() {
               width="w-80"
               trigger={
                 <button
-                  className="relative inline-flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                  className="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
                   aria-label="Notifications"
                 >
                   <Bell className="h-[18px] w-[18px]" />
@@ -282,7 +292,7 @@ export default function Layout() {
               align="right"
               width="w-60"
               trigger={
-                <button className="flex items-center gap-2 rounded-xl py-1 pl-1 pr-2 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800">
+                <button className="flex items-center gap-2 rounded-xl min-h-[44px] py-1 pl-1 pr-2 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800">
                   <Avatar name={displayName} />
                   <span className="hidden text-left sm:block">
                     <span className="block max-w-[140px] truncate text-sm font-medium leading-tight text-slate-800 dark:text-slate-200">{displayName}</span>
@@ -303,6 +313,12 @@ export default function Layout() {
               </MenuItem>
               <MenuItem icon={<Settings className="h-4 w-4" />} onClick={() => { setSettingsTab("account"); setShowSettings(true); }}>
                 Account settings
+              </MenuItem>
+              <MenuItem icon={<Key className="h-4 w-4" />} onClick={() => navigate("/settings/api-tokens")}>
+                API Tokens
+              </MenuItem>
+              <MenuItem icon={<Monitor className="h-4 w-4" />} onClick={() => navigate("/settings/sessions")}>
+                Sessions
               </MenuItem>
               <MenuSeparator />
               <MenuItem icon={<LogOut className="h-4 w-4" />} danger onClick={handleLogout}>
@@ -401,17 +417,7 @@ export default function Layout() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            <Field label="Member since">
-              <Input value={user?.created_at ? new Date(user.created_at).toLocaleDateString() : ""} disabled />
-            </Field>
-            <Field label="Account type">
-              <Input value={user?.is_superuser ? "Administrator" : "Standard User"} disabled />
-            </Field>
-            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 text-sm text-slate-500 dark:text-slate-400">
-              Password and security settings are managed through the login page.
-            </div>
-          </div>
+          <ThemeSettings />
         )}
       </Modal>
 
@@ -424,7 +430,7 @@ export default function Layout() {
                 <Logo className="h-10 w-10" />
                 <span className="block text-sm font-bold text-slate-900 dark:text-white">Report Scheduler</span>
               </Link>
-              <button onClick={() => setShowMobileMenu(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+              <button onClick={() => setShowMobileMenu(false)} className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -470,6 +476,34 @@ export default function Layout() {
           </aside>
         </div>
       )}
+    </div>
+  );
+}
+
+function ThemeSettings() {
+  const { user } = useAuth();
+  const { serverPreference, setServerPreference } = useTheme();
+  return (
+    <div className="space-y-4">
+      <Field label="Theme Preference">
+        <Select
+          value={serverPreference}
+          onChange={(e) => setServerPreference(e.target.value)}
+        >
+          <option value="system">System Default</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </Select>
+      </Field>
+      <Field label="Member since">
+        <Input value={user?.created_at ? new Date(user.created_at).toLocaleDateString() : ""} disabled />
+      </Field>
+      <Field label="Account type">
+        <Input value={user?.is_superuser ? "Administrator" : "Standard User"} disabled />
+      </Field>
+      <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 text-sm text-slate-500 dark:text-slate-400">
+        Password and security settings are managed through the login page.
+      </div>
     </div>
   );
 }

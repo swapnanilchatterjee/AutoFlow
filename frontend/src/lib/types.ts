@@ -6,9 +6,14 @@ export interface User {
   is_active: boolean;
   is_superuser: boolean;
   role: string;
+  theme_preference?: string | null;
   created_at: string;
   updated_at: string;
   last_password_changed?: string | null;
+}
+
+export interface ThemePreference {
+  theme_preference: "light" | "dark" | "system";
 }
 
 export interface Tokens {
@@ -249,7 +254,76 @@ export interface WorkerInfo {
   pid: number | null;
   uptime: number;
   active_tasks: number;
+  last_heartbeat?: string | null;
+  total_tasks?: number | null;
+  memory_usage?: number | null;
   error?: string;
+}
+
+export interface ApiToken {
+  id: string;
+  name: string;
+  token_prefix: string;
+  last_used_at: string | null;
+  created_at: string;
+  expires_at: string | null;
+}
+
+export interface ApiTokenCreated {
+  id: string;
+  name: string;
+  token: string;
+  created_at: string;
+  expires_at: string | null;
+}
+
+export interface SmtpConfig {
+  smtp_host: string;
+  smtp_port: number;
+  smtp_username: string;
+  smtp_password: string;
+  smtp_sender_email: string;
+  smtp_sender_name: string;
+  smtp_use_tls: boolean;
+}
+
+export interface AdminActivityLog {
+  id: string;
+  workspace_id: string;
+  user_id: string;
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  details: string | null;
+  created_at: string | null;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    full_name: string | null;
+  } | null;
+}
+
+export interface RetentionConfig {
+  auto_delete_enabled: boolean;
+  runs_value: number;
+  runs_unit: string;
+  logs_value: number;
+  logs_unit: string;
+}
+
+export interface CleanupResult {
+  detail: string;
+  deleted_runs: number;
+  deleted_steps: number;
+  deleted_deliveries: number;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 

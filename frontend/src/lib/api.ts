@@ -1,8 +1,9 @@
 import type {
-  BranchInfo, ChannelCatalogItem, CommitInfo, Connection, ConnectionTestResult,
-  DashboardStats, Delivery, DirListing, FileContent, FileNode, GitStatus, Member,
-  Notification, RecentRun, Secret, Tokens, User, Variable, Workflow, WorkflowRun, Workspace,
-  WorkflowComment, WorkflowShare, ActivityLog, AdminStats, WorkerInfo,
+  ApiToken, ApiTokenCreated, BranchInfo, ChannelCatalogItem, CleanupResult, CommitInfo, Connection,
+  ConnectionTestResult, DashboardStats, Delivery, DirListing, FileContent, FileNode,
+  GitStatus, Member, Notification, RecentRun, RetentionConfig, Secret, ThemePreference, Tokens, User, Variable,
+  Workflow, WorkflowRun, Workspace, WorkflowComment, WorkflowShare, ActivityLog,
+  AdminStats, WorkerInfo, SmtpConfig, AdminActivityLog, PaginatedResponse,
 } from "./types";
 
 
@@ -136,6 +137,9 @@ export const api = {
       request<User>("/users/me", { method: "PATCH", body }),
     update: (id: string, body: { username?: string; email?: string; password?: string; full_name?: string; is_active?: boolean; role?: string; is_superuser?: boolean }) =>
       request<User>(`/users/${id}`, { method: "PATCH", body }),
+    getTheme: () => request<ThemePreference>("/users/me/theme"),
+    updateTheme: (theme_preference: string) =>
+      request<ThemePreference>("/users/me/theme", { method: "PUT", body: { theme_preference } }),
   },
   workspaces: {
     list: () => request<Workspace[]>("/workspaces"),
@@ -264,13 +268,38 @@ export const api = {
     activity: (ws: string) =>
       request<ActivityLog[]>(`/workspaces/${ws}/workflows/activity`),
   },
+  tokens: {
+    list: () => request<ApiToken[]>("/api-tokens"),
+    create: (name: string) =>
+      request<ApiTokenCreated>("/api-tokens", { method: "POST", body: { name } }),
+    remove: (id: string) =>
+      request<void>(`/api-tokens/${id}`, { method: "DELETE" }),
+  },
   admin: {
     stats: () => request<AdminStats>("/admin/stats"),
     workers: () => request<WorkerInfo[]>("/admin/workers"),
     restartWorker: (name: string) =>
       request<{ detail: string }>(`/admin/workers/${name}/restart`, { method: "POST" }),
+    shutdownWorker: (name: string) =>
+      request<{ detail: string }>(`/admin/workers/${name}/shutdown`, { method: "POST" }),
     createUser: (body: any) => request<User>("/users", { method: "POST", body }),
     listUsers: () => request<User[]>("/users"),
+    smtp: {
+      get: () => request<SmtpConfig>("/admin/settings/smtp"),
+      save: (cfg: SmtpConfig) =>
+        request<SmtpConfig>("/admin/settings/smtp", { method: "PUT", body: cfg }),
+      test: (toEmail: string) =>
+        request<{ detail: string }>("/admin/settings/smtp/test", { method: "POST", body: { to_email: toEmail } }),
+    },
+    retention: {
+      get: () => request<RetentionConfig>("/admin/settings/retention"),
+      save: (cfg: RetentionConfig) =>
+        request<RetentionConfig>("/admin/settings/retention", { method: "PUT", body: cfg }),
+      run: () =>
+        request<CleanupResult>("/admin/settings/retention/run", { method: "POST" }),
+    },
+    activity: (params: { limit?: number; offset?: number; action?: string; user_search?: string; entity_type?: string } = {}) =>
+      request<PaginatedResponse<AdminActivityLog>>(`/admin/activity${qs(params)}`),
   },
 };
 

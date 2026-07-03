@@ -31,10 +31,23 @@ role-based access, and a real run history — without sending anything to a thir
 - **Workflow engine** — GitHub-Actions-style YAML (`env` + `steps[].run` +
   `continue_on_error`), validated on save.
 - **Scheduler** — cron-scheduled workflows (evaluated every minute) and scheduled heartbeat/diagnostic checks directly on integrations.
-- **Webhooks** — unguessable public trigger URLs.
-- **Runs & logs** — per-step status, exit code, timing, and live-tailed output styled with line numbers like GitHub Actions, plus individual step and run-level raw log downloading.
+- **Webhooks** — unguessable public trigger URLs with built-in test tool.
+- **Runs & logs** — per-step status, exit code, timing, and live-tailed output styled with line numbers like GitHub Actions, plus individual step and run-level raw log downloading. Search and filter runs by status, date range, and keywords.
 - **Notifications** — in-app, on run completion.
-- **Dashboard** — counts, success rate, recent runs.
+- **Dashboard** — counts, success rate, recent runs, customizable stat cards.
+- **Dark/Light theme** — toggle with system preference detection and server-side persistence.
+- **Collapsible sidebar** — expand/collapse with icon-only mode, persisted across sessions.
+- **Cron expression builder** — visual preset buttons with human-readable next-run preview.
+- **Workflow templates** — pre-built templates (backup, report, health check, ETL) with one-click clone.
+- **Workflow import/export** — download YAML definitions and upload from file.
+- **API token management** — generate/revoke personal access tokens for programmatic workflow triggering.
+- **SMTP configuration** — admin settings page to configure email delivery for notifications and password resets.
+- **Audit log** — global activity feed showing all user actions across workspaces.
+- **Data retention policies** — auto-delete old runs and logs based on configurable age thresholds.
+- **Session management** — view and manage active login sessions.
+- **Runner node management** — detailed worker information with pool restart and shutdown controls.
+- **Onboarding wizard** — guided first-time setup for new users.
+- **Premium UI** — animated gradients, glassmorphism, smooth transitions, responsive mobile design.
 
 ## Tech stack
 

@@ -136,24 +136,24 @@ export default function Deliveries() {
       />
 
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-premium">
-        <div className="w-48">
+        <div className="w-full sm:w-48">
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search recipient or workflow..."
-            className="h-9 text-xs"
+            className="h-9 text-xs w-full"
           />
         </div>
-        <div className="w-36">
-          <Select value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 text-xs">
+        <div className="w-full sm:w-36">
+          <Select value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 text-xs w-full">
             <option value="">Status</option>
             <option value="delivered">Delivered</option>
             <option value="failed">Failed</option>
             <option value="executing">Executing</option>
           </Select>
         </div>
-        <div className="w-36">
-          <Select value={channel} onChange={(e) => setChannel(e.target.value)} className="h-9 text-xs">
+        <div className="w-full sm:w-36">
+          <Select value={channel} onChange={(e) => setChannel(e.target.value)} className="h-9 text-xs w-full">
             <option value="">Channels</option>
             <option value="gmail">Gmail</option>
             <option value="telegram">Telegram</option>
@@ -161,20 +161,20 @@ export default function Deliveries() {
             <option value="shell">Shell</option>
           </Select>
         </div>
-        <div className="w-36">
+        <div className="w-full sm:w-36">
           <Input
             type="date"
             value={startDateStr}
             onChange={(e) => setStartDateStr(e.target.value)}
-            className="h-9 text-xs"
+            className="h-9 text-xs w-full"
           />
         </div>
-        <div className="w-36">
+        <div className="w-full sm:w-36">
           <Input
             type="date"
             value={endDateStr}
             onChange={(e) => setEndDateStr(e.target.value)}
-            className="h-9 text-xs"
+            className="h-9 text-xs w-full"
           />
         </div>
         {(startDateStr || endDateStr || search) && (
@@ -184,7 +184,7 @@ export default function Deliveries() {
               setStartDateStr("");
               setEndDateStr("");
             }}
-            className="text-xs text-brand hover:underline font-semibold select-none px-2"
+            className="text-xs text-brand hover:underline font-semibold select-none px-2 min-h-[44px]"
           >
             Clear filters
           </button>
@@ -194,7 +194,7 @@ export default function Deliveries() {
           variant="secondary"
           onClick={handleExportCSV}
           disabled={filteredRows.length === 0}
-          className="ml-auto h-9 font-semibold inline-flex items-center justify-center"
+          className="sm:ml-auto h-9 font-semibold inline-flex items-center justify-center w-full sm:w-auto"
         >
           <Download className="h-4 w-4" /> Export CSV
         </Button>

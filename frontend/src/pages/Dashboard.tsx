@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Calendar, CheckCircle2, Download, Mail, MessageCircle, Play,
+  Calendar, CheckCircle2, Download, Mail, MessageCircle, Play, Settings,
   Send, TrendingUp, XCircle, X, Globe, Terminal
 } from "lucide-react";
 import { api } from "../lib/api";
 import type { DashboardStats, Delivery, RecentRun } from "../lib/types";
 import {
-  Button, Card, CardBody, CardHeader, EmptyState, Input, PageHeader,
+  Button, Card, CardBody, CardHeader, EmptyState, Input, Menu, MenuLabel, PageHeader,
   Skeleton, StatCard, StatusPill, Table, TBody, TD, TH, THead, TR, cn, useToast,
 } from "../components/ui";
 
@@ -30,6 +30,15 @@ export default function Dashboard() {
   const [chartView, setChartView] = useState<"all" | "success" | "failed" | "executing">("all");
   const [selectedPoint, setSelectedPoint] = useState<any | null>(null);
   const [timezone, setTimezone] = useState(() => localStorage.getItem("af_timezone") || "local");
+
+  const [visibleCards, setVisibleCards] = useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem("af_dashboard_cards");
+    return saved ? JSON.parse(saved) : { runs: true, delivered: true, failed: true, rate: true };
+  });
+
+  useEffect(() => {
+    localStorage.setItem("af_dashboard_cards", JSON.stringify(visibleCards));
+  }, [visibleCards]);
 
   const [startDateStr, setStartDateStr] = useState(() => {
     const d = new Date();
@@ -262,25 +271,25 @@ export default function Dashboard() {
       {/* Top section: title on left, date range controls on right */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <PageHeader title="Dashboard" description="Activity across all your workspaces." className="mb-0" />
-        <div className="flex flex-wrap items-center gap-3 rounded-2xl border bg-white p-3 shadow-premium dark:bg-slate-900 dark:border-slate-800 lg:shrink-0">
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border bg-white p-3 shadow-premium dark:bg-slate-900 dark:border-slate-800 lg:shrink-0 w-full sm:w-auto">
           <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             <Calendar className="h-4 w-4 text-brand" /> Range:
           </div>
-          <div className="w-36">
+          <div className="w-full sm:w-36">
             <Input
               type="date"
               value={startDateStr}
               onChange={(e) => setStartDateStr(e.target.value)}
-              className="h-8 text-xs py-1"
+              className="h-8 text-xs py-1 w-full"
             />
           </div>
           <span className="text-slate-300 dark:text-slate-600 font-bold">{"\u2014"}</span>
-          <div className="w-36">
+          <div className="w-full sm:w-36">
             <Input
               type="date"
               value={endDateStr}
               onChange={(e) => setEndDateStr(e.target.value)}
-              className="h-8 text-xs py-1"
+              className="h-8 text-xs py-1 w-full"
             />
           </div>
           <Button
@@ -290,8 +299,33 @@ export default function Dashboard() {
           >
             <Download className="h-4 w-4" /> Export CSV
           </Button>
-          <div className="flex items-center gap-1.5 border-l pl-3 dark:border-slate-700">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1">
+          <Menu
+            trigger={<Button size="sm" variant="secondary"><Settings className="h-4 w-4" /> Customize</Button>}
+            align="right"
+            width="w-48"
+          >
+            <MenuLabel>Show cards</MenuLabel>
+            <div className="px-3 py-2 space-y-2">
+              {[
+                { key: "runs", label: "Filtered runs" },
+                { key: "delivered", label: "Delivered" },
+                { key: "failed", label: "Failed" },
+                { key: "rate", label: "Success rate" },
+              ].map((card) => (
+                <label key={card.key} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={visibleCards[card.key]}
+                    onChange={(e) => setVisibleCards((prev) => ({ ...prev, [card.key]: e.target.checked }))}
+                    className="h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand/30 dark:border-slate-600 dark:bg-slate-800"
+                  />
+                  <span className="text-slate-700 dark:text-slate-300">{card.label}</span>
+                </label>
+              ))}
+            </div>
+          </Menu>
+          <div className="flex items-center gap-1.5 border-l pl-3 dark:border-slate-700 w-full sm:w-auto">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1 shrink-0">
               <Globe className="h-3.5 w-3.5 text-brand" /> TZ:
             </span>
             <select
@@ -302,7 +336,7 @@ export default function Dashboard() {
                 setTimezone(newTz);
                 toast.info(`Dashboard timezone updated to ${newTz === "local" ? "Local Browser Time" : newTz}`);
               }}
-              className="h-8 rounded-xl border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200"
+              className="h-8 rounded-xl border border-slate-300 bg-white px-2 py-1 text-xs font-semibold text-slate-700 shadow-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 w-full sm:w-auto"
             >
               <option value="local">Local Time</option>
               <option value="UTC">UTC (GMT+00:00)</option>
@@ -320,30 +354,38 @@ export default function Dashboard() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
-        <StatCard
-          label="Filtered runs"
-          value={computedStats.total}
-          icon={<Play className="h-[18px] w-[18px]" />}
-          hint={`From ${startDateStr} to ${endDateStr}`}
-        />
-        <StatCard
-          label="Delivered"
-          value={computedStats.success}
-          icon={<CheckCircle2 className="h-[18px] w-[18px] text-emerald-500" />}
-          hint="Successful deliveries"
-        />
-        <StatCard
-          label="Failed"
-          value={computedStats.failed}
-          icon={<XCircle className="h-[18px] w-[18px] text-red-500" />}
-          hint="Rejected deliveries"
-        />
-        <StatCard
-          label="Success rate"
-          value={`${computedStats.rate}%`}
-          icon={<TrendingUp className="h-[18px] w-[18px]" />}
-          hint="Within filtered range"
-        />
+        {visibleCards.runs && (
+          <StatCard
+            label="Filtered runs"
+            value={computedStats.total}
+            icon={<Play className="h-[18px] w-[18px]" />}
+            hint={`From ${startDateStr} to ${endDateStr}`}
+          />
+        )}
+        {visibleCards.delivered && (
+          <StatCard
+            label="Delivered"
+            value={computedStats.success}
+            icon={<CheckCircle2 className="h-[18px] w-[18px] text-emerald-500" />}
+            hint="Successful deliveries"
+          />
+        )}
+        {visibleCards.failed && (
+          <StatCard
+            label="Failed"
+            value={computedStats.failed}
+            icon={<XCircle className="h-[18px] w-[18px] text-red-500" />}
+            hint="Rejected deliveries"
+          />
+        )}
+        {visibleCards.rate && (
+          <StatCard
+            label="Success rate"
+            value={`${computedStats.rate}%`}
+            icon={<TrendingUp className="h-[18px] w-[18px]" />}
+            hint="Within filtered range"
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

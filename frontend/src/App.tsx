@@ -14,6 +14,12 @@ import RunDetail from "./pages/RunDetail";
 import Notifications from "./pages/Notifications";
 import Deliveries from "./pages/Deliveries";
 import AdminPanel from "./pages/AdminPanel";
+import SmtpSettings from "./pages/SmtpSettings";
+import AuditLog from "./pages/AuditLog";
+import ApiTokens from "./pages/ApiTokens";
+import DataRetention from "./pages/DataRetention";
+import Sessions from "./pages/Sessions";
+import OnboardingWizard from "./pages/OnboardingWizard";
 
 function Protected({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -40,6 +46,7 @@ export default function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/onboarding" element={<Protected><OnboardingWizard /></Protected>} />
       <Route element={<Protected><Layout /></Protected>}>
         <Route index element={<Dashboard />} />
         <Route path="/workspaces" element={<Workspaces />} />
@@ -49,6 +56,11 @@ export default function App() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/deliveries" element={<Deliveries />} />
         <Route path="/admin" element={<AdminRoute><AdminPanel /></AdminRoute>} />
+        <Route path="/admin/settings/smtp" element={<AdminRoute><SmtpSettings /></AdminRoute>} />
+        <Route path="/admin/settings/retention" element={<AdminRoute><DataRetention /></AdminRoute>} />
+        <Route path="/admin/activity" element={<AdminRoute><AuditLog /></AdminRoute>} />
+        <Route path="/settings/sessions" element={<Sessions />} />
+        <Route path="/settings/api-tokens" element={<ApiTokens />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

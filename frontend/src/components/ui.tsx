@@ -469,30 +469,30 @@ export function Modal({
   const w = size === "sm" ? "max-w-sm" : size === "lg" ? "max-w-2xl" : "max-w-lg";
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 backdrop-blur-md p-4 pt-[10vh] animate-fade-in"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 backdrop-blur-md p-2 sm:p-4 pt-[5vh] sm:pt-[10vh] animate-fade-in"
       onClick={onClose}
     >
       <div
         className={cn(
           "w-full rounded-2xl border bg-white shadow-pop-lg animate-pop-in overflow-hidden",
           "dark:bg-slate-900 dark:border-slate-800 dark:shadow-dark-pop",
-          w,
+          "sm:" + w,
         )}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={cn(
-          "flex items-start justify-between gap-4 px-6 py-5",
+          "flex items-start justify-between gap-4 px-4 sm:px-6 py-4 sm:py-5",
           "border-b",
         )}>
           <div className="space-y-1">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h3>
-            {description && <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>}
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">{title}</h3>
+            {description && <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">{description}</p>}
           </div>
           <IconButton onClick={onClose} aria-label="Close"><X className="h-4 w-4" /></IconButton>
         </div>
-        <div className="px-6 py-5 text-sm text-slate-600 dark:text-slate-300">{children}</div>
+        <div className="px-4 sm:px-6 py-4 sm:py-5 text-sm text-slate-600 dark:text-slate-300 max-h-[85vh] overflow-y-auto">{children}</div>
         {footer && (
-          <div className="flex items-center justify-end gap-2 border-t bg-slate-50/80 px-6 py-4 dark:bg-slate-800/30 dark:border-slate-800">
+          <div className="flex items-center justify-end gap-2 border-t bg-slate-50/80 px-4 sm:px-6 py-3 sm:py-4 dark:bg-slate-800/30 dark:border-slate-800">
             {footer}
           </div>
         )}

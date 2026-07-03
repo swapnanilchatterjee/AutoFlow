@@ -16,6 +16,7 @@ class UserRead(ORMModel):
     is_active: bool
     is_superuser: bool
     role: str
+    theme_preference: str | None = "system"
     created_at: datetime
     updated_at: datetime
     last_password_changed: datetime | None = None
@@ -34,4 +35,8 @@ class UserAdminUpdate(BaseModel):
     is_active: bool | None = None
     role: str | None = None
     is_superuser: bool | None = None
+
+
+class ThemeUpdate(BaseModel):
+    theme_preference: str = Field(default="system", pattern=r"^(light|dark|system)$")
 

@@ -14,7 +14,7 @@ from app.models.user import User
 from app.models.workflow import WorkflowRun
 from app.repositories.user import UserRepository
 from app.schemas.auth import RegisterRequest
-from app.schemas.user import UserAdminUpdate, UserRead, UserUpdate
+from app.schemas.user import ThemeUpdate, UserAdminUpdate, UserRead, UserUpdate
 from app.schemas.workflow import WorkflowRunRead
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -53,6 +53,24 @@ async def update_me(
         user.last_password_changed = datetime.now(UTC).replace(tzinfo=None)
     await db.flush()
     return user
+
+
+@router.get("/me/theme", response_model=ThemeUpdate)
+async def get_my_theme(
+    user: User = Depends(get_current_user),
+) -> dict:
+    return {"theme_preference": user.theme_preference or "system"}
+
+
+@router.put("/me/theme", response_model=ThemeUpdate)
+async def update_my_theme(
+    data: ThemeUpdate,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    user.theme_preference = data.theme_preference
+    await db.flush()
+    return {"theme_preference": user.theme_preference}
 
 
 @router.get("/{user_id}", response_model=UserRead)

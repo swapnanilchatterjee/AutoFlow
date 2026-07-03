@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Copy, Play, RefreshCw, Send, MessageSquare, AlertTriangle, Trash2 } from "lucide-react";
+import { ChevronLeft, Copy, Play, RefreshCw, Search, Send, MessageSquare, AlertTriangle, Trash2, X } from "lucide-react";
 
 import { api } from "../lib/api";
 import type { TriggerType, Workflow, WorkflowRun, WorkflowComment, WorkflowShare, Member } from "../lib/types";
@@ -8,6 +8,7 @@ import {
   Badge, Button, Card, CardBody, CardHeader, EmptyState, ErrorText, Field, Input, Label,
   PageHeader, Select, Skeleton, StatusPill, Textarea, cn, fmtRelative, useToast,
 } from "../components/ui";
+import CronBuilder from "../components/CronBuilder";
 
 const TRIGGERS: TriggerType[] = ["manual", "schedule", "webhook"];
 
@@ -27,12 +28,16 @@ export default function WorkflowDetail() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [triggering, setTriggering] = useState(false);
-  const [showCustomInput, setShowCustomInput] = useState(false);
   
   const [newComment, setNewComment] = useState("");
   const [conflictWarning, setConflictWarning] = useState<string | null>(null);
   const [shareUserId, setShareUserId] = useState("");
   const [transferUserId, setTransferUserId] = useState("");
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   const loadRuns = useCallback(() => {
     api.workflows.runs(wsId, wfId).then(setRuns).catch(() => {});
@@ -187,6 +192,54 @@ export default function WorkflowDetail() {
     toast.success("Webhook URL copied");
   }
 
+  async function testWebhook() {
+    if (!webhookUrl) return;
+    try {
+      const res = await fetch(webhookUrl, { method: "POST" });
+      const data = await res.json();
+      toast.success(`Webhook triggered: Run #${data.run_number} created`);
+    } catch (e) {
+      toast.error("Webhook test failed");
+    }
+  }
+
+  const filteredRuns = useMemo(() => {
+    return runs.filter((r) => {
+      const q = searchQuery.toLowerCase();
+      if (searchQuery) {
+        const matchesSearch =
+          `#${r.run_number}`.includes(q) ||
+          r.status.toLowerCase().includes(q) ||
+          r.trigger.toLowerCase().includes(q);
+        if (!matchesSearch) return false;
+      }
+      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (dateFrom || dateTo) {
+        const runDate = new Date(r.started_at ?? r.created_at);
+        if (dateFrom) {
+          const from = new Date(dateFrom);
+          from.setHours(0, 0, 0, 0);
+          if (runDate < from) return false;
+        }
+        if (dateTo) {
+          const to = new Date(dateTo);
+          to.setHours(23, 59, 59, 999);
+          if (runDate > to) return false;
+        }
+      }
+      return true;
+    });
+  }, [runs, searchQuery, statusFilter, dateFrom, dateTo]);
+
+  const hasActiveFilters = searchQuery || statusFilter !== "all" || dateFrom || dateTo;
+
+  function clearFilters() {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setDateFrom("");
+    setDateTo("");
+  }
+
   if (error && !wf) return <p className="text-danger">{error}</p>;
   if (!wf) return (
     <div>
@@ -284,7 +337,7 @@ export default function WorkflowDetail() {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Ask a question or mention a teammate @username..."
-                  className="text-sm"
+                  className="text-sm w-full"
                   onKeyDown={(e) => { if (e.key === "Enter") handleAddComment(); }}
                 />
                 <Button size="sm" onClick={handleAddComment}>
@@ -318,80 +371,33 @@ export default function WorkflowDetail() {
                 </div>
               </Field>
 
-              {wf.trigger_type === "schedule" && (() => {
-                const isPreset = ["*/1 * * * *", "0 * * * *", "0 0 * * *", "0 0 * * 0", "0 0 1 * *"].includes(wf.schedule_cron ?? "");
-                const showCustom = showCustomInput || !isPreset;
-                return (
-                  <>
-                    <Field label="Schedule frequency">
-                      <Select
-                        value={isPreset ? (wf.schedule_cron ?? "0 * * * *") : "custom"}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (val === "custom") {
-                            setShowCustomInput(true);
-                          } else {
-                            setShowCustomInput(false);
-                            patch({ schedule_cron: val });
-                          }
-                        }}
-                      >
-                        <option value="*/1 * * * *">Every minute</option>
-                        <option value="0 * * * *">Every hour</option>
-                        <option value="0 0 * * *">Every day (at midnight)</option>
-                        <option value="0 0 * * 0">Every week (Sunday at midnight)</option>
-                        <option value="0 0 1 * *">Every month (1st day at midnight)</option>
-                        <option value="custom">Custom expression...</option>
-                      </Select>
-                    </Field>
-
-                    {showCustom && (
-                      <Field label="Cron expression" help="Standard 5-field cron format: Min Hour Day Month Day-of-Week.">
-                        <Input
-                          defaultValue={wf.schedule_cron ?? "0 * * * *"}
-                          onBlur={(e) => patch({ schedule_cron: e.target.value })}
-                          className="font-mono text-[13px]"
-                          placeholder="e.g. 0 9 * * 1-5"
-                        />
-                      </Field>
-                    )}
-
-                    <Field label="Timezone" help="Evaluates the schedule in the selected timezone.">
-                      <Select
-                        value={wf.schedule_tz ?? "UTC"}
-                        onChange={(e) => patch({ schedule_tz: e.target.value })}
-                      >
-                        <option value="UTC">UTC (GMT+00:00)</option>
-                        <option value="Asia/Kolkata">Asia/Kolkata (IST, GMT+05:30)</option>
-                        <option value="America/New_York">America/New_York (EST/EDT)</option>
-                        <option value="America/Chicago">America/Chicago (CST/CDT)</option>
-                        <option value="America/Denver">America/Denver (MST/MDT)</option>
-                        <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
-                        <option value="Europe/London">Europe/London (BST/GMT)</option>
-                        <option value="Europe/Paris">Europe/Paris (CEST/CET)</option>
-                        <option value="Asia/Singapore">Asia/Singapore (SGT, GMT+08:00)</option>
-                        <option value="Asia/Tokyo">Asia/Tokyo (JST, GMT+09:00)</option>
-                        <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
-                      </Select>
-                    </Field>
-
-                    {/* Next scheduled runs */}
-                    {wf.next_runs && wf.next_runs.length > 0 && (
-                      <div className="mt-4 rounded-xl bg-slate-50 p-4 border border-slate-100">
-                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Next 5 scheduled runs</p>
-                        <div className="space-y-1.5 font-mono text-[11px] text-slate-600">
-                          {wf.next_runs.map((r: string, idx: number) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <span className="w-4 text-slate-300 font-bold">{idx + 1}.</span>
-                              <span>{new Date(r).toLocaleString()}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
+              {wf.trigger_type === "schedule" && (
+                <>
+                  <CronBuilder
+                    value={wf.schedule_cron ?? "0 * * * *"}
+                    onChange={(cron) => patch({ schedule_cron: cron })}
+                    className="mb-4"
+                  />
+                  <Field label="Timezone" help="Evaluates the schedule in the selected timezone.">
+                    <Select
+                      value={wf.schedule_tz ?? "UTC"}
+                      onChange={(e) => patch({ schedule_tz: e.target.value })}
+                    >
+                      <option value="UTC">UTC (GMT+00:00)</option>
+                      <option value="Asia/Kolkata">Asia/Kolkata (IST, GMT+05:30)</option>
+                      <option value="America/New_York">America/New_York (EST/EDT)</option>
+                      <option value="America/Chicago">America/Chicago (CST/CDT)</option>
+                      <option value="America/Denver">America/Denver (MST/MDT)</option>
+                      <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+                      <option value="Europe/London">Europe/London (BST/GMT)</option>
+                      <option value="Europe/Paris">Europe/Paris (CEST/CET)</option>
+                      <option value="Asia/Singapore">Asia/Singapore (SGT, GMT+08:00)</option>
+                      <option value="Asia/Tokyo">Asia/Tokyo (JST, GMT+09:00)</option>
+                      <option value="Australia/Sydney">Australia/Sydney (AEST/AEDT)</option>
+                    </Select>
+                  </Field>
+                </>
+              )}
 
               {wf.trigger_type === "webhook" && webhookUrl && (
                 <div>
@@ -399,6 +405,7 @@ export default function WorkflowDetail() {
                   <div className="flex items-center gap-1.5">
                     <code className="min-w-0 flex-1 truncate rounded-lg border border-line bg-slate-50 dark:bg-slate-950 px-2.5 py-2 font-mono text-xs text-slate-900 dark:text-white">{webhookUrl}</code>
                     <Button size="sm" variant="secondary" onClick={() => copyWebhook(webhookUrl)}><Copy className="h-3.5 w-3.5" /></Button>
+                    <Button size="sm" variant="secondary" onClick={testWebhook}><Send className="h-3.5 w-3.5" /> Test</Button>
                   </div>
                   <div className="mt-2 flex justify-end">
                     <Button size="sm" variant="ghost" onClick={regen}><RefreshCw className="h-3.5 w-3.5" /> Regenerate</Button>
@@ -529,13 +536,61 @@ export default function WorkflowDetail() {
 
       <Card>
         <CardHeader title="Run history" description="Recent executions of this workflow." />
-        {runs.length === 0 ? (
+        <div className="flex flex-wrap items-center gap-3 px-5 py-3 border-b border-hairline">
+          <div className="relative flex-1 min-w-[180px] w-full sm:max-w-[260px]">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search runs..."
+              className="pl-8 text-sm h-9 w-full"
+            />
+          </div>
+          <Select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="text-sm h-9 w-full sm:w-[140px]"
+          >
+            <option value="all">All statuses</option>
+            <option value="success">Success</option>
+            <option value="failed">Failed</option>
+            <option value="running">Running</option>
+            <option value="queued">Queued</option>
+            <option value="cancelled">Cancelled</option>
+          </Select>
+          <Input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="text-sm h-9 w-full sm:w-[150px]"
+          />
+          <span className="text-xs text-slate-400">—</span>
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="text-sm h-9 w-full sm:w-[150px]"
+          />
+          <span className="text-xs text-slate-400 whitespace-nowrap">
+            Showing {filteredRuns.length} of {runs.length} runs
+          </span>
+          {hasActiveFilters && (
+            <Button size="sm" variant="ghost" onClick={clearFilters} className="text-xs h-9 gap-1">
+              <X className="h-3.5 w-3.5" /> Clear
+            </Button>
+          )}
+        </div>
+        {filteredRuns.length === 0 ? (
           <div className="p-5">
-            <EmptyState icon={<Play className="h-5 w-5" />} title="No runs yet" description="Trigger this workflow to see run history and logs." />
+            <EmptyState
+              icon={<Search className="h-5 w-5" />}
+              title={runs.length === 0 ? "No runs yet" : "No runs match your filters"}
+              description={runs.length === 0 ? "Trigger this workflow to see run history and logs." : "Try adjusting your search or filter criteria."}
+            />
           </div>
         ) : (
           <div className="divide-y divide-hairline">
-            {runs.map((r) => (
+            {filteredRuns.map((r) => (
               <Link
                 key={r.id}
                 to={`/workspaces/${wsId}/workflows/${wfId}/runs/${r.id}`}
