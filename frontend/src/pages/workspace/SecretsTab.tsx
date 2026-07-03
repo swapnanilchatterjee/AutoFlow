@@ -40,19 +40,19 @@ export default function SecretsTab({ wsId, canManage }: { wsId: string; canManag
           action={canManage ? <Button size="sm" variant="secondary" onClick={() => setModal("secret")}>Add secret</Button> : undefined}
         />
         {secrets.length === 0 ? (
-          <p className="px-5 py-6 text-sm text-muted">No secrets yet.</p>
+          <p className="px-5 py-6 text-sm text-slate-500 dark:text-slate-400">No secrets yet.</p>
         ) : (
-          <ul className="divide-y divide-hairline">
+          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
             {secrets.map((s) => (
               <li key={s.id} className="flex items-center justify-between px-5 py-3">
                 <div className="flex items-center gap-2">
-                  <KeyRound className="h-4 w-4 text-faint" />
-                  <span className="font-mono text-sm text-ink">{s.key}</span>
-                  <span className="font-mono text-xs text-faint">••••••</span>
+                  <KeyRound className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                  <span className="font-mono text-sm text-slate-900 dark:text-white">{s.key}</span>
+                  <span className="font-mono text-xs text-slate-400 dark:text-slate-500">••••••</span>
                 </div>
                 {canManage && (
                   <IconButton
-                    className="hover:bg-danger-50 hover:text-danger"
+                    className="hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400"
                     onClick={async () => { await api.secrets.remove(wsId, s.key); toast.success(`Secret ${s.key} removed`); load(); }}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -71,18 +71,18 @@ export default function SecretsTab({ wsId, canManage }: { wsId: string; canManag
           action={canManage ? <Button size="sm" variant="secondary" onClick={() => setModal("variable")}>Add variable</Button> : undefined}
         />
         {vars.length === 0 ? (
-          <p className="px-5 py-6 text-sm text-muted">No variables yet.</p>
+          <p className="px-5 py-6 text-sm text-slate-500 dark:text-slate-400">No variables yet.</p>
         ) : (
-          <ul className="divide-y divide-hairline">
+          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
             {vars.map((v) => (
               <li key={v.id} className="flex items-center justify-between px-5 py-3">
                 <div className="flex min-w-0 items-center gap-2">
-                  <span className="font-mono text-sm text-ink">{v.key}</span>
-                  <span className="truncate font-mono text-xs text-muted">= {v.value}</span>
+                  <span className="font-mono text-sm text-slate-900 dark:text-white">{v.key}</span>
+                  <span className="truncate font-mono text-xs text-slate-500 dark:text-slate-400">= {v.value}</span>
                 </div>
                 {canManage && (
                   <IconButton
-                    className="hover:bg-danger-50 hover:text-danger"
+                    className="hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400"
                     onClick={async () => { await api.variables.remove(wsId, v.key); toast.success(`Variable ${v.key} removed`); load(); }}
                   >
                     <Trash2 className="h-4 w-4" />

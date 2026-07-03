@@ -56,16 +56,16 @@ export default function Notifications() {
               >
                 <span className={cn(
                   "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg",
-                  failed ? "bg-danger-50 text-danger" : "bg-ok-50 text-ok",
+                  failed ? "bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400" : "bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400",
                 )}>
                   {failed ? <AlertCircle className="h-4 w-4" /> : <CheckCircle2 className="h-4 w-4" />}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className={cn("text-sm", n.is_read ? "text-muted" : "font-medium text-ink")}>{n.title}</p>
-                  {n.message && <p className="mt-0.5 text-sm text-muted">{n.message}</p>}
+                  <p className={cn("text-sm", n.is_read ? "text-slate-500 dark:text-slate-400" : "font-medium text-slate-900 dark:text-white")}>{n.title}</p>
+                  {n.message && <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{n.message}</p>}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className="text-xs text-faint">{fmtRelative(n.created_at)}</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{fmtRelative(n.created_at)}</span>
                   {!n.is_read && <span className="h-2 w-2 rounded-full bg-brand" />}
                 </div>
               </Card>

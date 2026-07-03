@@ -1,7 +1,8 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  ChevronDown, Download, Mail, MessageCircle, Paperclip, RefreshCw, ScrollText, Send, Terminal,
+  ChevronDown, Clock, Download, FolderGit2, Info, Mail, MessageCircle, Paperclip,
+  RefreshCw, ScrollText, Send, Terminal, Users,
 } from "lucide-react";
 import { api } from "../lib/api";
 import type { Delivery } from "../lib/types";
@@ -134,7 +135,7 @@ export default function Deliveries() {
         actions={<Button variant="secondary" onClick={() => load()}><RefreshCw className="h-4 w-4" /> Refresh</Button>}
       />
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-100 bg-white p-3 shadow-premium">
+      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-premium">
         <div className="w-48">
           <Input
             value={search}
@@ -145,7 +146,7 @@ export default function Deliveries() {
         </div>
         <div className="w-36">
           <Select value={status} onChange={(e) => setStatus(e.target.value)} className="h-9 text-xs">
-            <option value="">All statuses</option>
+            <option value="">Status</option>
             <option value="delivered">Delivered</option>
             <option value="failed">Failed</option>
             <option value="executing">Executing</option>
@@ -153,7 +154,7 @@ export default function Deliveries() {
         </div>
         <div className="w-36">
           <Select value={channel} onChange={(e) => setChannel(e.target.value)} className="h-9 text-xs">
-            <option value="">All channels</option>
+            <option value="">Channels</option>
             <option value="gmail">Gmail</option>
             <option value="telegram">Telegram</option>
             <option value="whatsapp">WhatsApp</option>
@@ -208,7 +209,7 @@ export default function Deliveries() {
           description="Try adjusting your filters or date range parameters."
         />
       ) : (
-        <div className="overflow-x-auto scroll-slim border border-slate-100 rounded-xl bg-white shadow-premium">
+        <div className="overflow-x-auto scroll-slim border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 shadow-premium">
           <Table className="min-w-[820px]">
             <THead>
               <TR>
@@ -233,8 +234,8 @@ export default function Deliveries() {
                   <Fragment key={d.id}>
                     <TR onClick={() => setExpanded(open ? null : d.id)}>
                       <TD>
-                        <div className="font-semibold text-slate-800">{when.day}</div>
-                        <div className="text-[11px] text-slate-400 font-mono mt-0.5 tnum">{when.time}</div>
+                        <div className="font-semibold text-slate-900 dark:text-white">{when.day}</div>
+                        <div className="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 tnum">{when.time}</div>
                       </TD>
                       <TD>
                         {runHref ? (
@@ -242,52 +243,89 @@ export default function Deliveries() {
                             {d.workflow_name}
                           </Link>
                         ) : (
-                          <span className="font-semibold text-slate-800">{d.workflow_name}</span>
+                          <span className="font-semibold text-slate-900 dark:text-white">{d.workflow_name}</span>
                         )}
-                        {d.run_number != null && <span className="ml-1.5 text-xs text-slate-400 font-mono tnum">#{d.run_number}</span>}
-                        <div className="text-xs text-slate-400 mt-0.5">{d.step_name}</div>
+                        {d.run_number != null && <span className="ml-1.5 text-xs text-slate-500 dark:text-slate-400 font-mono tnum">#{d.run_number}</span>}
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{d.step_name}</div>
                       </TD>
                       <TD>
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                          <Icon className="h-4 w-4 text-slate-400" />
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          <Icon className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                           {CHANNEL_LABEL[d.channel] ?? d.channel}
                         </span>
                       </TD>
                       <TD>
-                        <span className="text-xs text-slate-600 font-mono">{d.recipients[0] ?? "—"}</span>
+                        <span className="text-xs text-slate-600 dark:text-slate-400 font-mono">{d.recipients[0] ?? "—"}</span>
                         {d.recipient_count > 1 && (
-                          <span className="ml-1.5 text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.2 rounded font-sans">
+                          <span className="ml-1.5 text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.2 rounded font-sans">
                             +{d.recipient_count - 1} more
                           </span>
                         )}
                         {d.attachment_count > 0 && (
-                          <span className="ml-2.5 inline-flex items-center gap-0.5 text-xs text-slate-400 font-mono">
+                          <span className="ml-2.5 inline-flex items-center gap-0.5 text-xs text-slate-500 dark:text-slate-400 font-mono">
                             <Paperclip className="h-3.5 w-3.5" />{d.attachment_count}
                           </span>
                         )}
                       </TD>
                       <TD><Badge tone={FORMAT_TONE[d.body_format] ?? "neutral"}>{d.body_format}</Badge></TD>
                       <TD><StatusPill status={d.status} /></TD>
-                      <TD><ChevronDown className={cn("h-4 w-4 text-slate-400 transition-transform", open && "rotate-180")} /></TD>
+                      <TD><ChevronDown className={cn("h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform", open && "rotate-180")} /></TD>
                     </TR>
                     {open && (
-                      <tr className="bg-slate-50/50">
-                        <td colSpan={7} className="px-6 py-5 border-t border-slate-100">
-                          <dl className="grid grid-cols-2 gap-x-8 gap-y-4 text-sm sm:grid-cols-3">
-                            <Detail label="Connection" value={d.connection_name || "—"} />
-                            <Detail label="Workspace" value={d.workspace_slug || "—"} mono />
-                            <Detail label="Recipients" value={d.recipients.join(", ") || "—"} />
-                            <Detail label="Subject" value={d.subject || "—"} />
-                            <Detail label="Attachments" value={String(d.attachment_count)} />
-                            <Detail label="Provider refs" value={d.provider_refs?.join(", ") || "—"} mono />
-                            <Detail label="Started" value={fmtDate(d.started_at)} />
-                            <Detail label="Finished" value={fmtDate(d.finished_at)} />
-                            <Detail
-                              label="Result"
-                              value={d.detail || "—"}
-                              className={d.status === "failed" ? "text-danger font-semibold" : "font-medium text-emerald-600"}
-                            />
-                          </dl>
+                      <tr className="animate-fade-in">
+                        <td colSpan={7} className="p-0">
+                          <div className="mx-5 mb-4 mt-1 rounded-2xl border bg-slate-50/80 p-5 shadow-sm dark:bg-slate-800/40 dark:border-slate-700/50">
+                            <div className="grid grid-cols-2 gap-6 sm:grid-cols-3">
+                              <Detail
+                                icon={<Send className="h-4 w-4" />}
+                                label="Connection"
+                                value={d.connection_name || "\u2014"}
+                              />
+                              <Detail
+                                icon={<FolderGit2 className="h-4 w-4" />}
+                                label="Workspace"
+                                value={d.workspace_slug || "\u2014"}
+                                mono
+                              />
+                              <Detail
+                                icon={<Users className="h-4 w-4" />}
+                                label="Recipients"
+                                value={d.recipients.join(", ") || "\u2014"}
+                              />
+                              <Detail
+                                icon={<Mail className="h-4 w-4" />}
+                                label="Subject"
+                                value={d.subject || "\u2014"}
+                              />
+                              <Detail
+                                icon={<Paperclip className="h-4 w-4" />}
+                                label="Attachments"
+                                value={String(d.attachment_count)}
+                              />
+                              <Detail
+                                icon={<ScrollText className="h-4 w-4" />}
+                                label="Provider refs"
+                                value={d.provider_refs?.join(", ") || "\u2014"}
+                                mono
+                              />
+                              <Detail
+                                icon={<Clock className="h-4 w-4" />}
+                                label="Started"
+                                value={fmtDate(d.started_at)}
+                              />
+                              <Detail
+                                icon={<Clock className="h-4 w-4" />}
+                                label="Finished"
+                                value={fmtDate(d.finished_at)}
+                              />
+                              <Detail
+                                icon={<Info className="h-4 w-4" />}
+                                label="Result"
+                                value={d.detail || "\u2014"}
+                                className={d.status === "failed" ? "text-red-600 dark:text-red-400 font-semibold" : "font-medium text-emerald-600 dark:text-emerald-400"}
+                              />
+                            </div>
+                          </div>
                         </td>
                       </tr>
                     )}
@@ -302,11 +340,14 @@ export default function Deliveries() {
   );
 }
 
-function Detail({ label, value, mono, className }: { label: string; value: string; mono?: boolean; className?: string }) {
+function Detail({ icon, label, value, mono, className }: { icon?: ReactNode; label: string; value: string; mono?: boolean; className?: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</dt>
-      <dd className={cn("mt-1.5 break-words text-slate-700", mono && "font-mono text-xs", className)}>{value}</dd>
+      <dt className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+        {icon && <span className="text-slate-400 dark:text-slate-500">{icon}</span>}
+        {label}
+      </dt>
+      <dd className={cn("mt-1.5 break-words text-sm font-medium text-slate-800 dark:text-slate-200", mono && "font-mono text-xs", className)}>{value}</dd>
     </div>
   );
 }

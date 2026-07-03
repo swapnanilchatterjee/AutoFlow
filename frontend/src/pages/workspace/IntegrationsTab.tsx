@@ -84,7 +84,7 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
           schedule_tz: form.schedule_tz || "UTC",
           schedule_to: form.schedule_to || null,
         });
-        toast.success(`“${form.name}” updated`);
+        toast.success(`"${form.name}" updated`);
       } else {
         await api.connections.create(wsId, {
           type: form.type,
@@ -103,13 +103,13 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
 
   async function toggle(c: Connection) {
     await api.connections.update(wsId, c.id, { enabled: !c.enabled });
-    toast.success(c.enabled ? `“${c.name}” disabled` : `“${c.name}” enabled`);
+    toast.success(c.enabled ? `"${c.name}" disabled` : `"${c.name}" enabled`);
     loadConns();
   }
   async function remove(c: Connection) {
-    if (!confirm(`Delete the “${c.name}” connection?`)) return;
+    if (!confirm(`Delete the "${c.name}" connection?`)) return;
     await api.connections.remove(wsId, c.id);
-    toast.success(`“${c.name}” deleted`);
+    toast.success(`"${c.name}" deleted`);
     loadConns();
   }
   async function runTest() {
@@ -128,10 +128,10 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-4">
-        <p className="max-w-2xl text-sm text-muted">
+        <p className="max-w-2xl text-sm text-slate-500 dark:text-slate-400">
           Connect messaging channels so a workflow can deliver reports. Reference a channel from a
-          workflow step with <code className="rounded bg-hairline px-1 py-0.5 font-mono text-[12px] text-ink">uses: gmail</code> and a{" "}
-          <code className="rounded bg-hairline px-1 py-0.5 font-mono text-[12px] text-ink">with:</code> block.
+          workflow step with <code className="rounded bg-slate-100 dark:bg-slate-800 px-1 py-0.5 font-mono text-[12px] text-slate-900 dark:text-white">uses: gmail</code> and a{" "}
+          <code className="rounded bg-slate-100 dark:bg-slate-800 px-1 py-0.5 font-mono text-[12px] text-slate-900 dark:text-white">with:</code> block.
         </p>
         {canManage && <Button onClick={openAdd} className="shrink-0"><Plus className="h-4 w-4" /> Add connection</Button>}
       </div>
@@ -160,8 +160,8 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
                       <Icon className="h-[18px] w-[18px]" />
                     </div>
                     <div>
-                      <p className="font-medium text-ink">{c.name}</p>
-                      <p className="text-xs text-faint">{cat?.label ?? c.type}</p>
+                      <p className="font-medium text-slate-900 dark:text-white">{c.name}</p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">{cat?.label ?? c.type}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -184,30 +184,30 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
                 </div>
 
                 {summary.length > 0 && (
-                  <dl className="mt-3 space-y-1 border-t border-hairline pt-3">
+                  <dl className="mt-3 space-y-1 border-t border-slate-100 dark:border-slate-800 pt-3">
                     {summary.map(([k, v]) => (
                       <div key={k} className="flex items-center justify-between gap-3 text-xs">
-                        <dt className="text-faint">{cat?.config_fields.find((f) => f.key === k)?.label ?? k}</dt>
-                        <dd className="truncate font-mono text-muted">{v}</dd>
+                        <dt className="text-slate-400 dark:text-slate-500">{cat?.config_fields.find((f) => f.key === k)?.label ?? k}</dt>
+                        <dd className="truncate font-mono text-slate-500 dark:text-slate-400">{v}</dd>
                       </div>
                     ))}
                   </dl>
                 )}
 
                 {c.schedule_cron && (
-                  <div className="mt-3 rounded-lg bg-slate-50/70 p-2.5 border border-slate-100/80 text-xs">
-                    <div className="flex items-center gap-1.5 text-slate-600 font-medium">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
-                      <span>Scheduled Check: <code className="font-mono text-slate-800 bg-slate-200/60 px-1 py-0.5 rounded">{c.schedule_cron}</code> ({c.schedule_tz})</span>
+                  <div className="mt-3 rounded-lg bg-slate-50/70 dark:bg-slate-900/70 p-2.5 border border-slate-100/80 dark:border-slate-800/80 text-xs">
+                    <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-medium">
+                      <Clock className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
+                      <span>Scheduled Check: <code className="font-mono text-slate-800 dark:text-slate-200 bg-slate-200/60 dark:bg-slate-700/60 px-1 py-0.5 rounded">{c.schedule_cron}</code> ({c.schedule_tz})</span>
                     </div>
                     {c.schedule_to && (
-                      <div className="mt-1 text-[11px] text-slate-500 pl-5">
-                        Recipient: <span className="font-mono text-slate-700 font-medium">{c.schedule_to}</span>
+                      <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 pl-5">
+                        Recipient: <span className="font-mono text-slate-700 dark:text-slate-300 font-medium">{c.schedule_to}</span>
                       </div>
                     )}
                   </div>
                 )}
-                <p className="mt-3 text-[11px] text-faint">Updated {fmtRelative(c.updated_at)}</p>
+                <p className="mt-3 text-[11px] text-slate-400 dark:text-slate-500">Updated {fmtRelative(c.updated_at)}</p>
               </Card>
             );
           })}
@@ -224,7 +224,7 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
             : activeCatalog
               ? (
                 <span className="flex items-center gap-2">
-                  <button onClick={() => setForm({ ...EMPTY, config: {} })} className="text-muted hover:text-ink">
+                  <button onClick={() => setForm({ ...EMPTY, config: {} })} className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
                     <ArrowLeft className="h-4 w-4" />
                   </button>
                   Connect {activeCatalog.label}
@@ -259,14 +259,14 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
                 <button
                   key={c.type}
                   onClick={() => pickType(c.type)}
-                  className="flex items-center gap-3 rounded-xl border border-line p-3 text-left transition-colors hover:border-brand hover:bg-brand-50/40"
+                  className="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 p-3 text-left transition-colors hover:border-brand hover:bg-brand-50/40"
                 >
                   <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", meta.tint)}>
                     <Icon className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-ink">{c.label}</p>
-                    <p className="text-xs text-muted">{meta.blurb}</p>
+                    <p className="text-sm font-medium text-slate-900 dark:text-white">{c.label}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{meta.blurb}</p>
                   </div>
                 </button>
               );
@@ -295,12 +295,12 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
                 />
               </Field>
             ))}
-            <div className="rounded-lg bg-canvas px-3 py-2">
-              <Help>In a workflow: <code className="font-mono text-ink">uses: {activeCatalog.type}</code> · <span className="font-mono text-ink">{activeCatalog.send_hint}</span></Help>
+            <div className="rounded-lg bg-slate-50 dark:bg-slate-950 px-3 py-2">
+              <Help>In a workflow: <code className="font-mono text-slate-900 dark:text-white">uses: {activeCatalog.type}</code> · <span className="font-mono text-slate-900 dark:text-white">{activeCatalog.send_hint}</span></Help>
             </div>
             {activeCatalog.type === "gmail" && (
-              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 text-xs text-slate-600 space-y-2">
-                <p className="font-bold text-slate-800">Gmail / SMTP Setup Guide:</p>
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 p-4 text-xs text-slate-600 dark:text-slate-400 space-y-2">
+                <p className="font-bold text-slate-800 dark:text-slate-200">Gmail / SMTP Setup Guide:</p>
                 <ol className="list-decimal pl-4 space-y-1">
                   <li>Go to your Google Account Settings page.</li>
                   <li>Enable <strong>2-Step Verification</strong> if not already active.</li>
@@ -311,8 +311,8 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
               </div>
             )}
             {activeCatalog.type === "telegram" && (
-              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 text-xs text-slate-600 space-y-2">
-                <p className="font-bold text-slate-800">Telegram Bot Setup Guide:</p>
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 p-4 text-xs text-slate-600 dark:text-slate-400 space-y-2">
+                <p className="font-bold text-slate-800 dark:text-slate-200">Telegram Bot Setup Guide:</p>
                 <ol className="list-decimal pl-4 space-y-1">
                   <li>Search for <strong>@BotFather</strong> inside Telegram and start a chat.</li>
                   <li>Send the command <code>/newbot</code>, choose a name and username for your bot, and copy the <strong>HTTP API Token</strong>.</li>
@@ -322,8 +322,8 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
               </div>
             )}
             {activeCatalog.type === "whatsapp" && (
-              <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 text-xs text-slate-600 space-y-2">
-                <p className="font-bold text-slate-800">WhatsApp Cloud API Setup Guide:</p>
+              <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 p-4 text-xs text-slate-600 dark:text-slate-400 space-y-2">
+                <p className="font-bold text-slate-800 dark:text-slate-200">WhatsApp Cloud API Setup Guide:</p>
                 <ol className="list-decimal pl-4 space-y-1">
                   <li>Go to the <strong>Meta for Developers</strong> console and create a Business App.</li>
                   <li>Add the <strong>WhatsApp</strong> product to your Meta application.</li>
@@ -333,8 +333,8 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
               </div>
             )}
             {/* Connection Scheduling section */}
-            <div className="border-t border-line pt-4 mt-4 space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Scheduled Heartbeat/Diagnostic Dispatch</p>
+            <div className="border-t border-slate-200 dark:border-slate-800 pt-4 mt-4 space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Scheduled Heartbeat/Diagnostic Dispatch</p>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Cron expression" htmlFor="conn-cron" help="Standard 5-field cron: Min Hour Day Month Day-of-Week. Leave blank to disable.">
                   <Input
@@ -383,12 +383,12 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
                   const c = new Cron(form.schedule_cron, { timezone: form.schedule_tz || "UTC" });
                   const nexts = c.nextRuns(5);
                   return (
-                    <div className="rounded-xl bg-slate-50 p-4 border border-slate-100 mt-2">
-                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Next 5 scheduled runs</p>
-                      <div className="space-y-1 font-mono text-[11px] text-slate-600">
+                    <div className="rounded-xl bg-slate-50 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-800 mt-2">
+                      <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Next 5 scheduled runs</p>
+                      <div className="space-y-1 font-mono text-[11px] text-slate-600 dark:text-slate-400">
                         {nexts.map((d, idx) => (
                           <div key={idx} className="flex items-center gap-2">
-                            <span className="w-4 text-slate-300 font-bold">{idx + 1}.</span>
+                            <span className="w-4 text-slate-300 dark:text-slate-600 font-bold">{idx + 1}.</span>
                             <span>{d.toLocaleString()}</span>
                           </div>
                         ))}
@@ -397,7 +397,7 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
                   );
                 } catch {
                   return (
-                    <p className="text-xs text-danger font-medium mt-1">Invalid cron expression</p>
+                    <p className="text-xs text-red-600 dark:text-red-400 font-medium mt-1">Invalid cron expression</p>
                   );
                 }
               })()}
@@ -411,7 +411,7 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
       <Modal
         open={testing !== null}
         onClose={() => setTesting(null)}
-        title={`Send a test from “${testing?.name ?? ""}”`}
+        title={`Send a test from "${testing?.name ?? ""}"`}
         description="Delivers a short test message so you can confirm the credentials work."
         size="sm"
         footer={
@@ -436,9 +436,9 @@ export default function IntegrationsTab({ wsId, canManage }: { wsId: string; can
                 id="test-attach"
                 checked={testAttach}
                 onChange={(e) => setTestAttach(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer"
+                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-brand focus:ring-brand cursor-pointer"
               />
-              <label htmlFor="test-attach" className="text-xs text-slate-600 font-medium cursor-pointer select-none">
+              <label htmlFor="test-attach" className="text-xs text-slate-600 dark:text-slate-400 font-medium cursor-pointer select-none">
                 Include a test CSV attachment (test_report.csv)
               </label>
             </div>

@@ -75,12 +75,12 @@ export default function FilesTab({ wsId, canWrite }: { wsId: string; canWrite: b
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
       <div className="space-y-5 lg:col-span-2">
         <Card>
-          <div className="flex flex-wrap items-center gap-1 border-b border-hairline px-4 py-3 text-sm">
-            <button className="font-medium text-muted transition-colors hover:text-ink" onClick={() => loadDir("")}>root</button>
+          <div className="flex flex-wrap items-center gap-1 border-b border-slate-100 dark:border-slate-800 px-4 py-3 text-sm">
+            <button className="font-medium text-slate-500 dark:text-slate-400 transition-colors hover:text-slate-900 dark:hover:text-white" onClick={() => loadDir("")}>root</button>
             {crumbs.map((c, i) => (
               <span key={i} className="flex items-center gap-1">
-                <ChevronRight className="h-3.5 w-3.5 text-faint" />
-                <button className="text-muted transition-colors hover:text-ink" onClick={() => loadDir(crumbs.slice(0, i + 1).join("/"))}>{c}</button>
+                <ChevronRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
+                <button className="text-slate-500 dark:text-slate-400 transition-colors hover:text-slate-900 dark:hover:text-white" onClick={() => loadDir(crumbs.slice(0, i + 1).join("/"))}>{c}</button>
               </span>
             ))}
           </div>
@@ -89,23 +89,23 @@ export default function FilesTab({ wsId, canWrite }: { wsId: string; canWrite: b
             {!listing ? (
               <div className="space-y-1 p-2">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-7" />)}</div>
             ) : listing.entries.length === 0 ? (
-              <p className="py-6 text-center text-sm text-muted">Empty folder</p>
+              <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">Empty folder</p>
             ) : (
               <ul className="space-y-0.5">
                 {listing.entries.map((e) => (
-                  <li key={e.path} className="group flex items-center justify-between rounded-lg px-2 py-1.5 transition-colors hover:bg-hairline">
+                  <li key={e.path} className="group flex items-center justify-between rounded-lg px-2 py-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800">
                     <button
                       className="flex min-w-0 items-center gap-2.5 text-sm"
                       onClick={() => (e.type === "dir" ? loadDir(e.path) : openFile(e.path))}
                     >
                       {e.type === "dir"
                         ? <Folder className="h-4 w-4 shrink-0 text-brand" />
-                        : <File className="h-4 w-4 shrink-0 text-faint" />}
-                      <span className={cn("truncate", selected === e.path ? "font-medium text-brand-700" : "text-ink")}>{e.name}</span>
+                        : <File className="h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500" />}
+                      <span className={cn("truncate", selected === e.path ? "font-medium text-brand-700" : "text-slate-900 dark:text-white")}>{e.name}</span>
                     </button>
                     {canWrite && (
                       <button
-                        className="text-faint opacity-0 transition-opacity hover:text-danger group-hover:opacity-100"
+                        className="text-slate-400 dark:text-slate-500 opacity-0 transition-opacity hover:text-red-600 dark:hover:text-red-400 group-hover:opacity-100"
                         onClick={() => del(e.path)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -118,8 +118,8 @@ export default function FilesTab({ wsId, canWrite }: { wsId: string; canWrite: b
           </div>
 
           {canWrite && (
-            <div className="flex justify-end gap-2 border-t border-hairline px-4 py-3">
-              <label className="inline-flex cursor-pointer items-center justify-center font-medium transition-all duration-200 focus-visible:outline-none focus-visible:shadow-focus disabled:pointer-events-none disabled:opacity-50 h-8 gap-1.5 px-3.5 text-[13px] rounded-lg bg-white text-slate-700 border border-slate-200/80 hover:bg-slate-50 hover:text-slate-800 shadow-sm hover:border-slate-300 active:shadow-sm">
+            <div className="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800 px-4 py-3">
+              <label className="inline-flex cursor-pointer items-center justify-center font-medium transition-all duration-200 focus-visible:outline-none focus-visible:shadow-focus disabled:pointer-events-none disabled:opacity-50 h-8 gap-1.5 px-3.5 text-[13px] rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 shadow-sm hover:border-slate-300 dark:hover:border-slate-600 active:shadow-sm">
                 <Upload className="h-4 w-4" /> Upload
                 <input
                   type="file"
@@ -219,19 +219,19 @@ function GitPanel({ wsId, canWrite }: { wsId: string; canWrite: boolean }) {
   return (
     <Card>
       <CardHeader
-        title={<span className="flex items-center gap-2"><GitBranch className="h-4 w-4 text-faint" /> Git</span>}
+        title={<span className="flex items-center gap-2"><GitBranch className="h-4 w-4 text-slate-400 dark:text-slate-500" /> Git</span>}
         action={status?.initialized && status.branch ? <Badge tone="brand">{status.branch}</Badge> : undefined}
       />
       <CardBody>
         {!status?.initialized ? (
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm text-muted">Not a git repository.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Not a git repository.</p>
             {canWrite && <Button size="sm" variant="secondary" onClick={init}>Initialize</Button>}
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-muted">
-              {status.clean ? "Working tree clean." : <span><span className="font-medium text-ink tnum">{changeCount}</span> change{changeCount === 1 ? "" : "s"} pending</span>}
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {status.clean ? "Working tree clean." : <span><span className="font-medium text-slate-900 dark:text-white tnum">{changeCount}</span> change{changeCount === 1 ? "" : "s"} pending</span>}
             </p>
             {canWrite && !status.clean && (
               <div className="space-y-2">
@@ -243,11 +243,11 @@ function GitPanel({ wsId, canWrite }: { wsId: string; canWrite: boolean }) {
             )}
             <ErrorText>{error}</ErrorText>
             {log.length > 0 && (
-              <ul className="space-y-2 border-t border-hairline pt-3">
+              <ul className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3">
                 {log.slice(0, 5).map((c) => (
                   <li key={c.sha} className="flex items-center gap-2 text-xs">
-                    <span className="rounded bg-hairline px-1.5 py-0.5 font-mono text-brand-700">{c.short_sha}</span>
-                    <span className="truncate text-muted">{c.message}</span>
+                    <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-brand-700">{c.short_sha}</span>
+                    <span className="truncate text-slate-500 dark:text-slate-400">{c.message}</span>
                   </li>
                 ))}
               </ul>

@@ -129,9 +129,9 @@ export default function ContactsTab({ wsId, canManage }: { wsId: string; canMana
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="max-w-2xl text-sm text-muted">
+        <p className="max-w-2xl text-sm text-slate-500 dark:text-slate-400">
           Manage recipient contacts and group lists. Reference groups in workflow templates 
-          (e.g., using <code className="rounded bg-hairline px-1 py-0.5 font-mono text-[12px] text-ink">@team</code> or <code className="rounded bg-hairline px-1 py-0.5 font-mono text-[12px] text-ink">team</code> in the "to" parameter) to send bulk emails or WhatsApp notifications.
+          (e.g., using <code className="rounded bg-slate-100 dark:bg-slate-800 px-1 py-0.5 font-mono text-[12px] text-slate-900 dark:text-white">@team</code> or <code className="rounded bg-slate-100 dark:bg-slate-800 px-1 py-0.5 font-mono text-[12px] text-slate-900 dark:text-white">team</code> in the "to" parameter) to send bulk emails or WhatsApp notifications.
         </p>
         {canManage && (
           <Button onClick={openAdd} className="shrink-0">
@@ -142,7 +142,7 @@ export default function ContactsTab({ wsId, canManage }: { wsId: string; canMana
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -152,12 +152,12 @@ export default function ContactsTab({ wsId, canManage }: { wsId: string; canMana
         </div>
         {allGroups.length > 0 && (
           <div className="flex items-center gap-1.5 overflow-x-auto py-1 scroll-slim">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider mr-1">Groups:</span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mr-1">Groups:</span>
             {allGroups.map(g => (
               <button
                 key={g}
                 onClick={() => setQuery(g)}
-                className="inline-flex items-center rounded-full bg-slate-100 hover:bg-brand-50 hover:text-brand-700 px-2.5 py-0.5 text-xs font-medium text-slate-600 transition-colors"
+                className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-950 hover:text-brand-700 dark:hover:text-brand-300 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-400 transition-colors"
               >
                 {g}
               </button>
@@ -184,7 +184,7 @@ export default function ContactsTab({ wsId, canManage }: { wsId: string; canMana
           action={canManage ? <Button onClick={openAdd}><Plus className="h-4 w-4" /> Add contact</Button> : undefined}
         />
       ) : filtered.length === 0 ? (
-        <p className="py-12 text-center text-sm text-slate-500">No contacts match your search.</p>
+        <p className="py-12 text-center text-sm text-slate-500 dark:text-slate-400">No contacts match your search.</p>
       ) : (
         <Card className="overflow-hidden">
           <div className="overflow-x-auto scroll-slim">
@@ -214,27 +214,27 @@ export default function ContactsTab({ wsId, canManage }: { wsId: string; canMana
                           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-brand-50 to-indigo-50 text-[13px] font-bold text-brand border border-brand-100/30">
                             {initials || <User className="h-4 w-4" />}
                           </div>
-                          <span className="font-semibold text-slate-800">{c.name}</span>
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">{c.name}</span>
                         </div>
                       </TD>
                       <TD>
                         {c.email ? (
-                          <span className="inline-flex items-center gap-1.5 text-slate-600">
-                            <Mail className="h-3.5 w-3.5 text-slate-400" />
+                          <span className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                            <Mail className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
                             {c.email}
                           </span>
                         ) : (
-                          <span className="text-slate-300">—</span>
+                          <span className="text-slate-300 dark:text-slate-600">—</span>
                         )}
                       </TD>
                       <TD>
                         {c.phone ? (
-                          <span className="inline-flex items-center gap-1.5 text-slate-600 font-mono text-[13px]">
-                            <Phone className="h-3.5 w-3.5 text-slate-400" />
+                          <span className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-400 font-mono text-[13px]">
+                            <Phone className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
                             {c.phone}
                           </span>
                         ) : (
-                          <span className="text-slate-300">—</span>
+                          <span className="text-slate-300 dark:text-slate-600">—</span>
                         )}
                       </TD>
                       <TD>
@@ -244,7 +244,7 @@ export default function ContactsTab({ wsId, canManage }: { wsId: string; canMana
                               {g}
                             </Badge>
                           ))}
-                          {c.groups.length === 0 && <span className="text-slate-300">—</span>}
+                          {c.groups.length === 0 && <span className="text-slate-300 dark:text-slate-600">—</span>}
                         </div>
                       </TD>
                       {canManage && (
@@ -255,7 +255,7 @@ export default function ContactsTab({ wsId, canManage }: { wsId: string; canMana
                             </Button>
                             <button
                               onClick={() => handleDelete(actualIndex)}
-                              className="text-slate-400 hover:text-danger p-1.5 rounded-lg transition-colors hover:bg-danger-50"
+                              className="text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 p-1.5 rounded-lg transition-colors hover:bg-red-50 dark:hover:bg-red-950"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>

@@ -61,6 +61,15 @@ async def list_workspaces(
     db: AsyncSession = Depends(get_db),
 ) -> list[WorkspaceRead]:
     svc = WorkspaceService(db)
+    if user.is_superuser:
+        workspaces = await svc.list_all()
+        roles = {
+            m.workspace_id: m.role
+            for m in (
+                await db.execute(select(WorkspaceMember).where(WorkspaceMember.user_id == user.id))
+            ).scalars()
+        }
+        return [_read(ws, roles.get(ws.id) or WorkspaceRole.OWNER.value) for ws in workspaces]
     workspaces = await svc.list_for_user(user.id)
     roles = {
         m.workspace_id: m.role

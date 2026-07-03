@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import {
   ChevronLeft, Contact, FileCode2, KeyRound, Send, Settings, Users, Workflow,
 } from "lucide-react";
+import { useAuth } from "../auth/AuthContext";
 import { api } from "../lib/api";
 import type { Workspace } from "../lib/types";
 import { Badge, PageHeader, Skeleton, Tabs } from "../components/ui";
@@ -28,6 +29,7 @@ const TABS = [
 
 export default function WorkspaceDetail() {
   const { wsId = "" } = useParams();
+  const { user } = useAuth();
   const [ws, setWs] = useState<Workspace | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -51,14 +53,15 @@ export default function WorkspaceDetail() {
     </div>
   );
 
+  const isSuper = user?.is_superuser ?? false;
   const rank = RANK[ws.role ?? "viewer"] ?? 0;
-  const canWrite = rank >= RANK.member;
-  const canManage = rank >= RANK.maintainer;
-  const isOwner = rank >= RANK.owner;
+  const canWrite = isSuper || rank >= RANK.member;
+  const canManage = isSuper || rank >= RANK.maintainer;
+  const isOwner = isSuper || rank >= RANK.owner;
 
   return (
     <div>
-      <Link to="/workspaces" className="mb-3 inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-ink">
+      <Link to="/workspaces" className="mb-3 inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 transition-colors hover:text-slate-900 dark:hover:text-white">
         <ChevronLeft className="h-4 w-4" /> Workspaces
       </Link>
       <PageHeader
@@ -77,13 +80,15 @@ export default function WorkspaceDetail() {
 
       <Tabs tabs={TABS} active={tab} onChange={setTab} className="mb-6" />
 
-      {tab === "files" && <FilesTab wsId={wsId} canWrite={canWrite} />}
-      {tab === "workflows" && <WorkflowsTab wsId={wsId} canWrite={canWrite} />}
-      {tab === "contacts" && <ContactsTab wsId={wsId} canManage={canManage} />}
-      {tab === "integrations" && <IntegrationsTab wsId={wsId} canManage={canManage} />}
-      {tab === "secrets" && <SecretsTab wsId={wsId} canManage={canManage} />}
-      {tab === "members" && <MembersTab wsId={wsId} canManage={canManage} />}
-      {tab === "settings" && <SettingsTab ws={ws} isOwner={isOwner} onUpdated={load} />}
+      <div key={tab} className="animate-fade-in">
+        {tab === "files" && <FilesTab wsId={wsId} canWrite={canWrite} />}
+        {tab === "workflows" && <WorkflowsTab wsId={wsId} canWrite={canWrite} />}
+        {tab === "contacts" && <ContactsTab wsId={wsId} canManage={canManage} />}
+        {tab === "integrations" && <IntegrationsTab wsId={wsId} canManage={canManage} />}
+        {tab === "secrets" && <SecretsTab wsId={wsId} canManage={canManage} />}
+        {tab === "members" && <MembersTab wsId={wsId} canManage={canManage} />}
+        {tab === "settings" && <SettingsTab ws={ws} isOwner={isOwner} onUpdated={load} />}
+      </div>
     </div>
   );
 }

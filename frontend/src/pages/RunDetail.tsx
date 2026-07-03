@@ -57,7 +57,7 @@ export default function RunDetail() {
   }
 
 
-  if (error && !run) return <p className="text-danger">{error}</p>;
+  if (error && !run) return <p className="text-red-600 dark:text-red-400">{error}</p>;
   if (!run) return (
     <div>
       <Skeleton className="h-4 w-24" />
@@ -72,21 +72,21 @@ export default function RunDetail() {
 
   return (
     <div>
-      <Link to={`/workspaces/${wsId}/workflows/${wfId}`} className="mb-3 inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-ink">
+      <Link to={`/workspaces/${wsId}/workflows/${wfId}`} className="mb-3 inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 transition-colors hover:text-slate-900 dark:hover:text-white">
         <ChevronLeft className="h-4 w-4" /> Workflow
       </Link>
 
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-[22px] font-semibold tracking-[-0.01em] text-ink tnum">Run #{run.run_number}</h1>
+            <h1 className="text-[22px] font-semibold tracking-[-0.01em] text-slate-900 dark:text-white tnum">Run #{run.run_number}</h1>
             <StatusPill status={run.status} />
             <Badge tone="neutral" className="capitalize">{run.trigger}</Badge>
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
             <span>Started {fmtDate(run.started_at)}</span>
             {run.finished_at && <span>Finished {fmtDate(run.finished_at)}</span>}
-            {duration && <span>Duration <span className="font-medium text-ink tnum">{duration}</span></span>}
+            {duration && <span>Duration <span className="font-medium text-slate-900 dark:text-white tnum">{duration}</span></span>}
             <span>{steps.length} step{steps.length === 1 ? "" : "s"}</span>
           </div>
         </div>
@@ -123,9 +123,9 @@ export default function RunDetail() {
       {run.error && <div className="mb-4"><ErrorText>{run.error}</ErrorText></div>}
 
       {/* Pipeline */}
-      <div className="rounded-xl border border-slate-100 bg-white p-4 shadow-premium sm:p-6">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-premium sm:p-6">
         {steps.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted">Waiting for steps to start…</p>
+          <p className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">Waiting for steps to start…</p>
         ) : (
           steps.map((s, i) => <StepNode key={s.id} step={s} last={i === steps.length - 1} />)
         )}
@@ -138,10 +138,10 @@ const NODE: Record<string, { ring: string; icon: React.ReactNode }> = {
   success: { ring: "bg-ok text-white", icon: <Check className="h-4 w-4" /> },
   failed: { ring: "bg-danger text-white", icon: <X className="h-4 w-4" /> },
   running: { ring: "bg-info text-white", icon: <Loader2 className="h-4 w-4 animate-spin" /> },
-  queued: { ring: "border-2 border-line bg-surface text-faint", icon: <span className="h-1.5 w-1.5 rounded-full bg-faint" /> },
-  pending: { ring: "border-2 border-line bg-surface text-faint", icon: <span className="h-1.5 w-1.5 rounded-full bg-faint" /> },
-  skipped: { ring: "bg-hairline text-faint", icon: <Minus className="h-4 w-4" /> },
-  cancelled: { ring: "bg-hairline text-faint", icon: <Minus className="h-4 w-4" /> },
+  queued: { ring: "border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500", icon: <span className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-500" /> },
+  pending: { ring: "border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500", icon: <span className="h-1.5 w-1.5 rounded-full bg-slate-400 dark:bg-slate-500" /> },
+  skipped: { ring: "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500", icon: <Minus className="h-4 w-4" /> },
+  cancelled: { ring: "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500", icon: <Minus className="h-4 w-4" /> },
 };
 
 function StepNode({ step, last }: { step: StepRun; last: boolean }) {
@@ -161,25 +161,25 @@ function StepNode({ step, last }: { step: StepRun; last: boolean }) {
         )}>
           {node.icon}
         </span>
-        {!last && <span className="my-1 w-px flex-1 bg-line" />}
+        {!last && <span className="my-1 w-px flex-1 bg-slate-200 dark:bg-slate-800" />}
       </div>
 
       {/* Step card */}
       <div className={cn("min-w-0 flex-1", last ? "pb-0" : "pb-4")}>
-        <div className="overflow-hidden rounded-xl border border-line bg-surface">
+        <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
           <div
-            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-canvas/60 cursor-pointer"
+            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50/60 dark:hover:bg-slate-950/60 cursor-pointer"
             onClick={() => setOpen((o) => !o)}
           >
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-ink">{step.name}</span>
-                {failed && <span className="font-mono text-xs text-danger">exit {step.exit_code}</span>}
+                <span className="text-sm font-medium text-slate-900 dark:text-white">{step.name}</span>
+                {failed && <span className="font-mono text-xs text-red-600 dark:text-red-400">exit {step.exit_code}</span>}
               </div>
-              {step.command && <p className="mt-0.5 truncate font-mono text-xs text-faint">{step.command}</p>}
+              {step.command && <p className="mt-0.5 truncate font-mono text-xs text-slate-400 dark:text-slate-500">{step.command}</p>}
             </div>
             <div className="flex shrink-0 items-center gap-3">
-              {dur && <span className="text-xs text-faint tnum">{dur}</span>}
+              {dur && <span className="text-xs text-slate-400 dark:text-slate-500 tnum">{dur}</span>}
               <StatusPill status={step.status} />
               {step.logs?.trim() && (
                 <button
@@ -194,17 +194,17 @@ function StepNode({ step, last }: { step: StepRun; last: boolean }) {
                     link.click();
                     URL.revokeObjectURL(url);
                   }}
-                  className="rounded p-1 text-faint hover:bg-canvas hover:text-ink transition-colors"
+                  className="rounded p-1 text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-950 hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
                   <Download className="h-4 w-4" />
                 </button>
               )}
-              <ChevronDown className={cn("h-4 w-4 text-faint transition-transform", open && "rotate-180")} />
+              <ChevronDown className={cn("h-4 w-4 text-slate-400 dark:text-slate-500 transition-transform", open && "rotate-180")} />
             </div>
           </div>
 
           {open && (
-            <div className="border-t border-line bg-[#0E1117] py-3 px-4 overflow-x-auto scroll-slim max-h-96">
+            <div className="border-t border-slate-200 dark:border-slate-800 bg-[#0E1117] py-3 px-4 overflow-x-auto scroll-slim max-h-96">
               {step.logs?.trim() ? (
                 <div className="font-mono text-[11px] leading-relaxed text-[#D6DAE1] grid grid-cols-[2.5rem_1fr] gap-x-4">
                   {step.logs.split("\n").map((line, idx) => (

@@ -17,6 +17,7 @@ class UserRead(ORMModel):
     is_superuser: bool
     role: str
     created_at: datetime
+    updated_at: datetime
     last_password_changed: datetime | None = None
 
 
@@ -26,6 +27,10 @@ class UserUpdate(BaseModel):
 
 
 class UserAdminUpdate(BaseModel):
+    username: str | None = Field(default=None, min_length=3, max_length=64)
+    email: EmailStr | None = None
+    password: str | None = Field(default=None, min_length=8, max_length=128)
+    full_name: str | None = None
     is_active: bool | None = None
     role: str | None = None
     is_superuser: bool | None = None

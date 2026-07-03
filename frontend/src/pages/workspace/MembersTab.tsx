@@ -30,11 +30,11 @@ export default function MembersTab({ wsId, canManage }: { wsId: string; canManag
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
-        <p className="text-sm text-muted">People with access to this workspace.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">People with access to this workspace.</p>
         {canManage && <Button onClick={() => setOpen(true)}><UserPlus className="h-4 w-4" /> Add member</Button>}
       </div>
 
-      <Card className="divide-y divide-hairline">
+      <Card className="divide-y divide-slate-100 dark:divide-slate-800">
         {members.map((m) => {
           const label = m.user.full_name || m.user.username;
           return (
@@ -42,11 +42,11 @@ export default function MembersTab({ wsId, canManage }: { wsId: string; canManag
               <div className="flex items-center gap-3">
                 <Avatar name={label} />
                 <div>
-                  <p className="text-sm font-medium text-ink">{label}</p>
-                  <div className="flex items-center gap-2 text-xs text-muted flex-wrap">
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">{label}</p>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
                     <span>{m.user.email}</span>
                     <span>•</span>
-                    <span title={m.user.last_password_changed ? new Date(m.user.last_password_changed).toLocaleString() : "Never (never changed or updated)"} className="cursor-help hover:text-slate-600 transition-colors">
+                    <span title={m.user.last_password_changed ? new Date(m.user.last_password_changed).toLocaleString() : "Never (never changed or updated)"} className="cursor-help hover:text-slate-600 dark:hover:text-slate-400 transition-colors">
                       Password changed: {m.user.last_password_changed ? fmtRelative(m.user.last_password_changed) : "Never"}
                     </span>
                   </div>
@@ -82,7 +82,7 @@ export default function MembersTab({ wsId, canManage }: { wsId: string; canManag
                 )}
                 {canManage && m.role !== "owner" && (
                   <IconButton
-                    className="hover:bg-danger-50 hover:text-danger"
+                    className="hover:bg-red-50 dark:hover:bg-red-950 hover:text-red-600 dark:hover:text-red-400"
                     onClick={async () => {
                       try {
                         await api.workspaces.members.remove(wsId, m.id);

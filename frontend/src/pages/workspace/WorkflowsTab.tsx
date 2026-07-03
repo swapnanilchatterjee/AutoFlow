@@ -50,7 +50,7 @@ export default function WorkflowsTab({ wsId, canWrite }: { wsId: string; canWrit
         schedule_cron: trigger === "schedule" ? cron : undefined,
       });
       setOpen(false); setName("");
-      toast.success(`Workflow “${wf.name}” created`);
+      toast.success(`Workflow "${wf.name}" created`);
       navigate(`/workspaces/${wsId}/workflows/${wf.id}`);
     } catch (e) { setError(e instanceof Error ? e.message : "Failed"); }
     finally { setBusy(false); }
@@ -59,7 +59,7 @@ export default function WorkflowsTab({ wsId, canWrite }: { wsId: string; canWrit
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
-        <p className="text-sm text-muted">Automations that run a sequence of shell steps and deliver reports.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Automations that run a sequence of shell steps and deliver reports.</p>
         {canWrite && <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4" /> New workflow</Button>}
       </div>
 
@@ -77,16 +77,16 @@ export default function WorkflowsTab({ wsId, canWrite }: { wsId: string; canWrit
           {items.map((wf) => (
             <Card
               key={wf.id}
-              className="flex cursor-pointer items-center justify-between p-5 border border-slate-100 bg-white hover:-translate-y-[1px] hover:shadow-md transition-all duration-200"
+              className="group flex cursor-pointer items-center justify-between p-5 hover:-translate-y-0.5 hover:shadow-premium-hover transition-all duration-200"
               {...{ onClick: () => navigate(`/workspaces/${wsId}/workflows/${wf.id}`) }}
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-tr from-brand-50 to-indigo-50 text-brand border border-brand-100/30">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-50 to-indigo-50 text-brand dark:from-brand-500/10 dark:to-indigo-500/10 dark:text-brand-300 border border-brand-100/30 dark:border-brand-500/20 shadow-sm group-hover:shadow-md group-hover:scale-105 transition-all duration-200">
                   <WorkflowIcon className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="font-bold text-slate-800 hover:text-brand-600 transition-colors">{wf.name}</p>
-                  <p className="font-mono text-[11px] font-medium text-slate-400 mt-0.5">{wf.slug}</p>
+                  <p className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-brand-600 dark:group-hover:text-brand-300 transition-colors">{wf.name}</p>
+                  <p className="font-mono text-[11px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">{wf.slug}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -121,7 +121,7 @@ export default function WorkflowsTab({ wsId, canWrite }: { wsId: string; canWrit
                     "rounded-lg border px-3 py-2 text-sm capitalize transition-colors",
                     trigger === t
                       ? "border-brand bg-brand-50 text-brand-700"
-                      : "border-line text-muted hover:border-[#DDE1E7] hover:text-ink",
+                      : "border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-[#DDE1E7] dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-white",
                   )}
                 >
                   {t}

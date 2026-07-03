@@ -52,6 +52,9 @@ class WorkspaceService:
     async def list_for_user(self, user_id: uuid.UUID) -> list[Workspace]:
         return await self.repo.list_for_user(user_id)
 
+    async def list_all(self) -> list[Workspace]:
+        return await self.repo.list_all()
+
     async def update(self, ws: Workspace, data: WorkspaceUpdate) -> Workspace:
         if data.name is not None:
             ws.name = data.name

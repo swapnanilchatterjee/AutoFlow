@@ -73,8 +73,17 @@ class WorkspaceContext:
     """Resolved workspace + the caller's membership/role."""
 
     workspace: Workspace
-    member: WorkspaceMember
+    member: WorkspaceMember | None
     role: str
+    _user_id: uuid.UUID | None = None
+
+    @property
+    def user_id(self) -> uuid.UUID:
+        if self.member is not None:
+            return self.member.user_id
+        if self._user_id is not None:
+            return self._user_id
+        return self.workspace.owner_id
 
     def require(self, minimum: WorkspaceRole) -> None:
         if role_rank(self.role) < role_rank(minimum.value):
@@ -94,12 +103,12 @@ async def get_workspace_ctx(
     if user.is_superuser:
         member = await MemberRepository(db).get_membership(workspace_id, user.id)
         role = member.role if member else WorkspaceRole.OWNER.value
-        return WorkspaceContext(workspace, member, role)  # type: ignore[arg-type]
+        return WorkspaceContext(workspace, member, role, _user_id=user.id)
 
     member = await MemberRepository(db).get_membership(workspace_id, user.id)
     if member is None:
         raise NotFoundError("Workspace not found")  # hide existence from non-members
-    return WorkspaceContext(workspace, member, member.role)
+    return WorkspaceContext(workspace, member, member.role, _user_id=user.id)
 
 
 def require_workspace_role(minimum: WorkspaceRole):

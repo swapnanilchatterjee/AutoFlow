@@ -27,6 +27,13 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         res = await self.session.execute(stmt)
         return list(res.scalars().unique().all())
 
+    async def list_all(self) -> list[Workspace]:
+        """All workspaces (for superadmins)."""
+        res = await self.session.execute(
+            select(Workspace).order_by(Workspace.created_at.desc())
+        )
+        return list(res.scalars().all())
+
 
 class MemberRepository(BaseRepository[WorkspaceMember]):
     model = WorkspaceMember

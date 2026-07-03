@@ -201,7 +201,7 @@ export default function WorkflowDetail() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to={`/workspaces/${wsId}?tab=workflows`} className="mb-3 inline-flex items-center gap-1 text-sm text-muted transition-colors hover:text-ink">
+        <Link to={`/workspaces/${wsId}?tab=workflows`} className="mb-3 inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 transition-colors hover:text-slate-900 dark:text-white">
           <ChevronLeft className="h-4 w-4" /> Workspace
         </Link>
         <PageHeader
@@ -246,9 +246,9 @@ export default function WorkflowDetail() {
                 className="min-h-[380px] font-mono text-[13px] leading-relaxed"
                 spellCheck={false}
               />
-              <p className="mt-2 flex items-center gap-1.5 text-xs text-faint">
+              <p className="mt-2 flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
                 <Send className="h-3.5 w-3.5" />
-                Tip: deliver reports with a <code className="rounded bg-hairline px-1 font-mono text-ink">uses:</code> step — set up channels in the Integrations tab.
+                Tip: deliver reports with a <code className="rounded bg-slate-100 dark:bg-slate-800 px-1 font-mono text-slate-900 dark:text-white">uses:</code> step — set up channels in the Integrations tab.
               </p>
               <ErrorText>{error}</ErrorText>
             </CardBody>
@@ -397,7 +397,7 @@ export default function WorkflowDetail() {
                 <div>
                   <Label>Webhook URL</Label>
                   <div className="flex items-center gap-1.5">
-                    <code className="min-w-0 flex-1 truncate rounded-lg border border-line bg-canvas px-2.5 py-2 font-mono text-xs text-ink">{webhookUrl}</code>
+                    <code className="min-w-0 flex-1 truncate rounded-lg border border-line bg-slate-50 dark:bg-slate-950 px-2.5 py-2 font-mono text-xs text-slate-900 dark:text-white">{webhookUrl}</code>
                     <Button size="sm" variant="secondary" onClick={() => copyWebhook(webhookUrl)}><Copy className="h-3.5 w-3.5" /></Button>
                   </div>
                   <div className="mt-2 flex justify-end">
@@ -448,16 +448,16 @@ export default function WorkflowDetail() {
 
               <div className="flex items-center justify-between border-t border-hairline pt-4">
                 <div>
-                  <p className="text-sm font-medium text-ink">Enabled</p>
-                  <p className="text-xs text-faint">Turn off to pause scheduled &amp; webhook runs.</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">Enabled</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Turn off to pause scheduled &amp; webhook runs.</p>
                 </div>
                 <Toggle on={wf.enabled} onClick={() => patch({ enabled: !wf.enabled })} />
               </div>
 
               <div className="flex items-center justify-between border-t border-hairline pt-4">
                 <div>
-                  <p className="text-sm font-medium text-ink">Email on Failure</p>
-                  <p className="text-xs text-faint">Send failure alert &amp; step logs via Gmail connection.</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-white">Email on Failure</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Send failure alert &amp; step logs via Gmail connection.</p>
                 </div>
                 <Toggle on={wf.email_on_failure} onClick={() => patch({ email_on_failure: !wf.email_on_failure })} />
               </div>
@@ -539,14 +539,14 @@ export default function WorkflowDetail() {
               <Link
                 key={r.id}
                 to={`/workspaces/${wsId}/workflows/${wfId}/runs/${r.id}`}
-                className="flex items-center justify-between px-5 py-3 transition-colors hover:bg-canvas/70"
+                className="flex items-center justify-between px-5 py-3 transition-colors hover:bg-slate-50 dark:bg-slate-950/70"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-ink tnum">#{r.run_number}</span>
+                  <span className="text-sm font-medium text-slate-900 dark:text-white tnum">#{r.run_number}</span>
                   <Badge tone="neutral" className="capitalize">{r.trigger}</Badge>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-faint">{fmtRelative(r.started_at ?? r.created_at)}</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{fmtRelative(r.started_at ?? r.created_at)}</span>
                   <StatusPill status={r.status} />
                 </div>
               </Link>

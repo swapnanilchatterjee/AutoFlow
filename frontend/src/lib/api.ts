@@ -130,9 +130,11 @@ export const api = {
   },
   users: {
     list: () => request<User[]>("/users"),
+    get: (id: string) => request<User>(`/users/${id}`),
+    getRuns: (id: string) => request<WorkflowRun[]>(`/users/${id}/runs`),
     updateMe: (body: { full_name?: string; password?: string }) =>
       request<User>("/users/me", { method: "PATCH", body }),
-    update: (id: string, body: { is_active?: boolean; role?: string; is_superuser?: boolean }) =>
+    update: (id: string, body: { username?: string; email?: string; password?: string; full_name?: string; is_active?: boolean; role?: string; is_superuser?: boolean }) =>
       request<User>(`/users/${id}`, { method: "PATCH", body }),
   },
   workspaces: {

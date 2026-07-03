@@ -40,12 +40,13 @@ async def get_workers(
     _: User = Depends(get_current_superuser)
 ):
     try:
-        inspect = celery_app.control.inspect()
-        ping_res = inspect.ping() if inspect else None
-        stats_res = inspect.stats() if inspect else None
+        inspect = celery_app.control.inspect(timeout=2.0)
+        ping_res = inspect.ping()
+        stats_res = inspect.stats()
         
         workers_list = []
         if ping_res:
+            active_res = inspect.active() or {}
             for worker_name in ping_res.keys():
                 worker_stats = stats_res.get(worker_name, {}) if stats_res else {}
                 workers_list.append({
@@ -53,7 +54,7 @@ async def get_workers(
                     "status": "healthy",
                     "pid": worker_stats.get("pid"),
                     "uptime": worker_stats.get("uptime", 0),
-                    "active_tasks": len(inspect.active().get(worker_name, []) if inspect and inspect.active() else []),
+                    "active_tasks": len(active_res.get(worker_name, [])),
                 })
         else:
             workers_list.append({

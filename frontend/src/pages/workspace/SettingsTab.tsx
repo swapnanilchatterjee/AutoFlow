@@ -44,12 +44,12 @@ export default function SettingsTab({ ws, isOwner, onUpdated }: { ws: Workspace;
       </Card>
 
       {isOwner && (
-        <Card className="border-danger-50">
+        <Card className="border-red-100 dark:border-red-900">
           <CardHeader
-            title={<span className="flex items-center gap-2 text-danger-600"><AlertTriangle className="h-4 w-4" /> Danger zone</span>}
+            title={<span className="flex items-center gap-2 text-red-600 dark:text-red-400"><AlertTriangle className="h-4 w-4" /> Danger zone</span>}
           />
           <CardBody className="flex items-center justify-between gap-4">
-            <p className="text-sm text-muted">Delete this workspace and everything in it. This cannot be undone.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Delete this workspace and everything in it. This cannot be undone.</p>
             <Button variant="danger" onClick={remove} className="shrink-0">Delete workspace</Button>
           </CardBody>
         </Card>

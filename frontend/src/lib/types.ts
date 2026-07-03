@@ -7,6 +7,7 @@ export interface User {
   is_superuser: boolean;
   role: string;
   created_at: string;
+  updated_at: string;
   last_password_changed?: string | null;
 }
 
