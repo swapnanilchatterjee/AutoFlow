@@ -66,7 +66,7 @@ def test_rbac_flows():
     # 3. Log in as Superadmin
     print("\n[3] Authenticating as Superadmin...")
     admin_payload = {
-        "username": "tester_26bbaf",
+        "username": "tester_63e701",
         "password": "SecureQA123Password"
     }
     resp = requests.post(f"{BASE_URL}/api/v1/auth/login", data=admin_payload)

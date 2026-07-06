@@ -39,7 +39,8 @@ def main():
             "email": email,
             "username": username,
             "password": password,
-            "full_name": "QA Verification Bot"
+            "full_name": "QA Verification Bot",
+            "admin_token": "super-secret-admin-token-123"
         }
         resp = requests.post(f"{BASE_URL}/api/v1/auth/register", json=reg_payload)
         assert resp.status_code in {200, 201}, f"Registration failed: {resp.status_code} - {resp.text}"
